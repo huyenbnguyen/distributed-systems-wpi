@@ -44,8 +44,7 @@ void parse_args(int argc, char **argv) {
 	}
 	args.num_input_files = argc - optind;
 	args.input_files = argv + optind;
-	int errflag = (args.fflag > 1) || (args.hflag > 1) || (args.rflag > 1); // cannot provide more than 1 instance of optional arguments
-	if (errflag || args.hflag) print_usage();
+	if (args.hflag) print_usage();
 }
 
 /* print a usage message and quit */
