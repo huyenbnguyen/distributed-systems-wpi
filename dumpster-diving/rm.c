@@ -19,6 +19,7 @@ void parse_args(int argc, char **argv);
 void rm_files(dev_t dumpster_device_id);
 void remove_file(char *file_path);
 void remove_dir(char *dir_path);
+char * get_new_name(char *old_name);
 
 int main(int argc, char **argv) {
 	static const char *ENV_NAME = "DUMPSTER"; // environment variable
@@ -27,13 +28,13 @@ int main(int argc, char **argv) {
 	parse_args(argc, argv);
 
 	// check if environment variable (aka DUMPSTER) has been set
-	char *dumpster_path = getenv(ENV_NAME);
-	if (!dumpster_path) {
+	args.dumpster_path = getenv(ENV_NAME);
+	if (!args.dumpster_path) {
 		fprintf(stderr, "%s\n", "Error: DUMPSTER hasn't been set. Aborting...");
 		exit(1);
 	}
 	struct stat dumpster_stat;
-	int dumpster_stat_code = stat(dumpster_path, &dumpster_stat);
+	int dumpster_stat_code = stat(args.dumpster_path, &dumpster_stat);
 
 	// if dumpster path is invalid, report error
 	if (dumpster_stat_code == -1) {
@@ -89,11 +90,15 @@ void rm_files(dev_t dumpster_device_id) {
 			} else { 
 				// If the file to be removed is on the same partition as the dumpster directory, 
 				// the file should not be copied but instead should be renamed (or hard-linked).
-
+				char *new_name = get_new_name(file_path);
+				// link(file_path, new_name);
 			}
 		}	
-		
 	}
+}
+
+char * get_new_name(char *old_name) {
+	return NULL;
 }
 
 void remove_dir(char *dir_path) {
