@@ -10,11 +10,15 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <dirent.h>
+#include <string.h>
 #include "args.h"
 
 void print_usage();
 void parse_args(int argc, char **argv);
 void rm_files(dev_t dumpster_device_id);
+void remove_file(char *file_path);
+void remove_dir(char *dir_path);
 
 int main(int argc, char **argv) {
 	static const char *ENV_NAME = "DUMPSTER"; // environment variable
@@ -24,7 +28,7 @@ int main(int argc, char **argv) {
 
 	// check if environment variable (aka DUMPSTER) has been set
 	char *dumpster_path = getenv(ENV_NAME);
-	if (dumpster_path == NULL) {
+	if (!dumpster_path) {
 		fprintf(stderr, "%s\n", "Error: DUMPSTER hasn't been set. Aborting...");
 		exit(1);
 	}
@@ -47,27 +51,100 @@ void rm_files(dev_t dumpster_device_id) {
 		char *file_path = args.input_files[i];
 		struct stat file_stat;
 		int file_stat_code = stat(file_path, &file_stat);
-
+		
 		// if file doesn't exist, report error
 		if (file_stat_code == -1) {
 			perror("File Path Error ");
 			exit(1);
 		}
 
-		// if file is directory
-		if (S_ISDIR(file_stat.st_mode)) {
+		int is_dir = S_ISDIR(file_stat.st_mode);
+
+		// if file is directory, check if -r is specified
+		if (is_dir) {
 			if (!args.rflag) {
 				fprintf(stderr, "%s\n", "Error: -r is missing for a directory. Aborting...");
 				exit(1);
 			}
 		}
 
-		// if file is on another partition
-		if (file_stat.st_dev != dumpster_device_id) {
-			
-		} else { // if file is on the same partition
-
+		// force remove
+		if (args.fflag) {
+			if (is_dir) {
+				remove_dir(file_path);
+			} else {
+				remove_file(file_path);
+			}
+			exit(0);
 		}
+
+		// don't force remove, use dumpster
+		if (is_dir) {
+
+		} else {
+			// If the file being removed is not on the same partition as the dumpster directory, 
+			// your rm must copy the file and then delete it (via the unlink() or remove() system call).
+			if (file_stat.st_dev != dumpster_device_id) {
+
+			} else { 
+				// If the file to be removed is on the same partition as the dumpster directory, 
+				// the file should not be copied but instead should be renamed (or hard-linked).
+
+			}
+		}	
+		
+	}
+}
+
+void remove_dir(char *dir_path) {
+	DIR *dir = opendir(dir_path);
+	if (!dir) {
+		perror("Cannot Open Directory Error");
+		exit(1);
+	}
+
+	struct dirent *dirent_struct = readdir(dir);
+	while (dirent_struct) {
+		char *file_to_delete = dirent_struct->d_name;
+
+		// skip names '.' and '..'
+		if ((strcmp(file_to_delete, ".") != 0 && strcmp(file_to_delete, "..") != 0)) {
+			// get full path of the file_to_delete
+			size_t full_path_len = strlen(dir_path) + strlen(file_to_delete) + 2; // 1 for terminator, 1 for '/' (doesn't matter whether dir_path ends with '/', tested)
+			char *full_path = malloc(full_path_len);
+				
+			if (full_path) {
+				snprintf(full_path, full_path_len, "%s/%s", dir_path, file_to_delete);
+				printf("%s\n", full_path);
+				struct stat file_stat;
+				int file_stat_code = stat(full_path, &file_stat);
+			
+				// if file doesn't exist, report error
+				if (file_stat_code == -1) {
+					free(full_path);
+					perror("File Path Error ");
+					exit(1);
+				}
+
+				if (S_ISDIR(file_stat.st_mode)) {
+					remove_dir(full_path);
+				} else {
+					remove_file(full_path);
+				}
+				free(full_path);
+			}
+		}
+		dirent_struct = readdir(dir);
+	}
+	closedir(dir);
+	rmdir(dir_path); // remove empty directory
+}
+
+void remove_file(char *file_path) {
+	int ret = remove(file_path);
+	if (ret == -1) {
+		perror("Remove File Error ");
+		exit(1);
 	}
 }
 
