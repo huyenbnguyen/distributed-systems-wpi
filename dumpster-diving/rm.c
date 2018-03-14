@@ -115,7 +115,6 @@ void remove_dir(char *dir_path) {
 				
 			if (full_path) {
 				snprintf(full_path, full_path_len, "%s/%s", dir_path, file_to_delete);
-				printf("%s\n", full_path);
 				struct stat file_stat;
 				int file_stat_code = stat(full_path, &file_stat);
 			
