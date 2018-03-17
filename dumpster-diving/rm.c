@@ -232,11 +232,11 @@ char *get_new_name(char *old_name) {
 	}
 	strcpy(old_name_copy, old_name); // basename() can modify input string => need to copy
 	char *base_name = basename(old_name_copy);
-	free(old_name_copy);
 	size_t new_name_no_extension_len = strlen(args.dumpster_path) + strlen(base_name) + 2; // 1 for terminator, 1 for '/'
 	char *new_name_no_extension = malloc(new_name_no_extension_len);
 	if (new_name_no_extension) {
 		snprintf(new_name_no_extension, new_name_no_extension_len, "%s/%s", args.dumpster_path, base_name); 
+		free(old_name_copy);
 		char *new_name_with_extension = (char *) malloc(new_name_no_extension_len+2); // 1 for '.', 1 for number
 		if (!new_name_with_extension) {
 			free(new_name_no_extension);
@@ -264,6 +264,7 @@ char *get_new_name(char *old_name) {
 		free(new_name_with_extension);
 		return new_name_no_extension;	
 	} 
+	free(old_name_copy);
 	fprintf(stderr, "%s\n", "Error: get_new_name() is unable to malloc() for new_name_no_extension. Aborting...");
 	exit(1);
 }
