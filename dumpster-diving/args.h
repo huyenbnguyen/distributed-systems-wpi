@@ -7,6 +7,7 @@ struct arguments {
    int fflag;
    char **input_files;
    int num_input_files;
+   char *dumpster_path;
 } args;
 
 #endif
