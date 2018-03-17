@@ -25,6 +25,8 @@ void remove_file(char *file_path);
 void remove_dir(char *dir_path);
 char * get_new_name(char *old_name);
 void touch_file(char *new_name, struct stat *file_stat);
+void copy_file(char *old_name, char *new_name);
+void move_and_touch_recursive(char *old_name, char *new_name, struct stat *file_stat);
 
 int main(int argc, char **argv) {
 	static const char *ENV_NAME = "DUMPSTER"; // environment variable
@@ -85,22 +87,91 @@ void rm_files(dev_t dumpster_device_id) {
 		}
 
 		// don't force remove, use dumpster
+		char *new_name = get_new_name(file_path);
 
 		// If the file being removed is not on the same partition as the dumpster directory, 
 		// your rm must copy the file and then delete it (via the unlink() or remove() system call).
 		if (file_stat.st_dev != dumpster_device_id) {
-
+			if (is_dir) {
+				move_and_touch_recursive(file_path, new_name, &file_stat);
+			} else {
+				copy_file(file_path, new_name);
+				remove(file_path);
+				touch_file(new_name, &file_stat);
+			}
 		} else { 
 			printf("%s\n", "same partition");
 			// If the file to be removed is on the same partition as the dumpster directory, 
 			// the file should not be copied but instead should be renamed (or hard-linked).
-			char *new_name = get_new_name(file_path);
 			rename(file_path, new_name);
 			touch_file(new_name, &file_stat);
-			free(new_name);
-			printf("%s\n", "freed");
-		}	
+		}
+		free(new_name);	
+		printf("%s\n", "freed");
 	}
+}
+
+void move_and_touch_recursive(char *old_name, char *new_name, struct stat *file_stat) {
+	DIR *dir = opendir(old_name);
+	if (!dir) {
+		perror("Cannot Open Directory Error");
+		exit(1);
+	}
+
+	struct dirent *dirent_struct = readdir(dir);
+	while (dirent_struct) {
+		char *file_to_move = dirent_struct->d_name;
+
+		// skip names '.' and '..'
+		if ((strcmp(file_to_delete, ".") != 0 && strcmp(file_to_delete, "..") != 0)) {
+			// get full path of the file_to_delete
+			size_t full_path_len = strlen(dir_path) + strlen(file_to_delete) + 2; // 1 for terminator, 1 for '/' (doesn't matter whether dir_path ends with '/', tested)
+			char *full_path = malloc(full_path_len);
+				
+			if (full_path) {
+				snprintf(full_path, full_path_len, "%s/%s", dir_path, file_to_delete);
+				struct stat file_stat;
+				int file_stat_code = stat(full_path, &file_stat);
+			
+				// if file doesn't exist, report error
+				if (file_stat_code == -1) {
+					free(full_path);
+					perror("File Path Error in remove_dir() ");
+					exit(1);
+				}
+
+				if (S_ISDIR(file_stat.st_mode)) {
+					remove_dir(full_path);
+				} else {
+					remove_file(full_path);
+				}
+				free(full_path);
+			} else {
+				fprintf(stderr, "%s\n", "Error: remove_dir() is unable to malloc(). Aborting...");
+				exit(1);
+			}
+		}
+		dirent_struct = readdir(dir);
+	}
+	closedir(dir);
+	rmdir(dir_path); // remove empty directory
+}
+
+void copy_file(char *old_name, char *new_name) {
+	FILE *old_file_ptr, *new_file_ptr;
+	old_file_ptr = fopen(old_name, "r");
+	new_file_ptr = fopen(new_name, "w");
+	if (old_file_ptr == NULL || new_file_ptr == NULL) {
+		perror("Error opening file in copy_file()");
+		exit(1);
+	}
+	char c = fgetc(old_file_ptr);
+	while (c != EOF) {
+		fputc(c, new_file_ptr);
+		c = fgetc(old_file_ptr);
+	}
+	fclose(old_file_ptr);
+	fclose(new_file_ptr);
 }
 
 void touch_file(char *new_name, struct stat *file_stat) {
@@ -168,7 +239,7 @@ char *get_new_name(char *old_name) {
 		free(new_name_with_extension);
 		return new_name_no_extension;	
 	} 
-	fprintf(stderr, "%s\n", "Error: get_new_name() is unable to malloc() for . Aborting...");
+	fprintf(stderr, "%s\n", "Error: get_new_name() is unable to malloc() for new_name_no_extension. Aborting...");
 	exit(1);
 }
 
