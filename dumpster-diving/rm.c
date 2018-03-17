@@ -249,10 +249,10 @@ char *get_new_name(char *old_name) {
 		// find number extension
 		while (access(new_name_with_extension, F_OK) == 0 && num_extension <= MAX_NUM_EXTENSION + 1) {
 			num_extension++;
-			char num = num_extension + '0'; // convert number to corresponding character
-			char *num_ptr = &num;
+			char num[2];
+			snprintf(num, 2, "%d", num_extension);
 			strcpy(new_name_with_extension, new_name_no_extension);
-			snprintf(new_name_with_extension, new_name_no_extension_len+2, "%s.%s", new_name_with_extension, num_ptr);
+			snprintf(new_name_with_extension, new_name_no_extension_len+2, "%s.%s", new_name_no_extension, num);
 		}
 		if (num_extension > MAX_NUM_EXTENSION) {
 			free(new_name_no_extension);
