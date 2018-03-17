@@ -182,6 +182,8 @@ void move_and_touch_directory(char *old_name, char *new_name, struct stat *file_
 				free(full_path_new);
 				free(full_path_old);
 			} else {
+				if (full_path_new) free(full_path_new);
+				else free(full_path_old);
 				fprintf(stderr, "%s\n", "Error: remove_dir() is unable to malloc(). Aborting...");
 				return;
 			}
