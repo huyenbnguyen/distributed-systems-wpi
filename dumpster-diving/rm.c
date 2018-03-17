@@ -12,7 +12,11 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <string.h>
+#include <libgen.h>
+#include <utime.h>
 #include "args.h"
+
+#define MAX_NUM_EXTENSION 9 // maximum number of entensions to be added to differentiate files with the same name
 
 void print_usage();
 void parse_args(int argc, char **argv);
@@ -20,6 +24,7 @@ void rm_files(dev_t dumpster_device_id);
 void remove_file(char *file_path);
 void remove_dir(char *dir_path);
 char * get_new_name(char *old_name);
+void touch_file(char *new_name, struct stat *file_stat);
 
 int main(int argc, char **argv) {
 	static const char *ENV_NAME = "DUMPSTER"; // environment variable
@@ -55,7 +60,7 @@ void rm_files(dev_t dumpster_device_id) {
 		
 		// if file doesn't exist, report error
 		if (file_stat_code == -1) {
-			perror("File Path Error ");
+			perror("File Path Error in rm_files() ");
 			exit(1);
 		}
 
@@ -80,25 +85,91 @@ void rm_files(dev_t dumpster_device_id) {
 		}
 
 		// don't force remove, use dumpster
-		if (is_dir) {
 
-		} else {
-			// If the file being removed is not on the same partition as the dumpster directory, 
-			// your rm must copy the file and then delete it (via the unlink() or remove() system call).
-			if (file_stat.st_dev != dumpster_device_id) {
+		// If the file being removed is not on the same partition as the dumpster directory, 
+		// your rm must copy the file and then delete it (via the unlink() or remove() system call).
+		if (file_stat.st_dev != dumpster_device_id) {
 
-			} else { 
-				// If the file to be removed is on the same partition as the dumpster directory, 
-				// the file should not be copied but instead should be renamed (or hard-linked).
-				char *new_name = get_new_name(file_path);
-				// link(file_path, new_name);
-			}
+		} else { 
+			printf("%s\n", "same partition");
+			// If the file to be removed is on the same partition as the dumpster directory, 
+			// the file should not be copied but instead should be renamed (or hard-linked).
+			char *new_name = get_new_name(file_path);
+			rename(file_path, new_name);
+			touch_file(new_name, &file_stat);
+			free(new_name);
+			printf("%s\n", "freed");
 		}	
 	}
 }
 
-char * get_new_name(char *old_name) {
-	return NULL;
+void touch_file(char *new_name, struct stat *file_stat) {
+
+	// set time
+	struct utimbuf puttime;	/* to set time */
+	puttime.actime = file_stat->st_atime;
+	puttime.modtime = file_stat->st_mtime;
+	if (utime(new_name, &puttime)) { // set to original timestamp
+		perror("Error setting time in touch_files() ");
+		exit(1);
+	}
+
+	// set mode
+	if (chmod(new_name, file_stat->st_mode) == -1) {
+		perror("Error setting mode in touch_files() ");
+		exit(1);
+	}
+
+	// set owner
+	if (chown(new_name, file_stat->st_uid, file_stat->st_gid) == -1) {
+		perror("Error setting owner in touch_files() ");
+		exit(1);
+	}
+}
+
+char *get_new_name(char *old_name) {
+	short num_extension = 0;
+	char *old_name_copy = (char *) malloc(strlen(old_name)+1); // +1 for null terminator
+	if (!old_name_copy) {
+		fprintf(stderr, "%s\n", "Error: get_new_name() is unable to malloc() for old_name_copy. Aborting...");
+		exit(1);
+	}
+	strcpy(old_name_copy, old_name); // basename() can modify input string => need to copy
+	char *base_name = basename(old_name_copy);
+	free(old_name_copy);
+	size_t new_name_no_extension_len = strlen(args.dumpster_path) + strlen(base_name) + 2; // 1 for terminator, 1 for '/'
+	char *new_name_no_extension = malloc(new_name_no_extension_len);
+	if (new_name_no_extension) {
+		snprintf(new_name_no_extension, new_name_no_extension_len, "%s/%s", args.dumpster_path, base_name); 
+		char *new_name_with_extension = (char *) malloc(new_name_no_extension_len+2); // 1 for '.', 1 for number
+		if (!new_name_with_extension) {
+			free(new_name_no_extension);
+			fprintf(stderr, "%s\n", "Error: get_new_name() is unable to malloc() for old_name_copy. Aborting...");
+			exit(1);
+		}
+		strcpy(new_name_with_extension, new_name_no_extension);
+		// find number extension
+		while (access(new_name_with_extension, F_OK) == 0 && num_extension <= MAX_NUM_EXTENSION + 1) {
+			num_extension++;
+			char num = num_extension + '0'; // convert number to corresponding character
+			char *num_ptr = &num;
+			strcpy(new_name_with_extension, new_name_no_extension);
+			snprintf(new_name_with_extension, new_name_no_extension_len+2, "%s.%s", new_name_with_extension, num_ptr);
+		}
+		if (num_extension == MAX_NUM_EXTENSION + 1) {
+			free(new_name_no_extension);
+			free(new_name_with_extension);
+			fprintf(stderr, "%s\n", "Error: Dumpster is full. Aborting...");
+			exit(1);
+		} else if (num_extension > 0) {
+			free(new_name_no_extension);
+			return new_name_with_extension;
+		}
+		free(new_name_with_extension);
+		return new_name_no_extension;	
+	} 
+	fprintf(stderr, "%s\n", "Error: get_new_name() is unable to malloc() for . Aborting...");
+	exit(1);
 }
 
 void remove_dir(char *dir_path) {
@@ -126,7 +197,7 @@ void remove_dir(char *dir_path) {
 				// if file doesn't exist, report error
 				if (file_stat_code == -1) {
 					free(full_path);
-					perror("File Path Error ");
+					perror("File Path Error in remove_dir() ");
 					exit(1);
 				}
 
@@ -136,6 +207,9 @@ void remove_dir(char *dir_path) {
 					remove_file(full_path);
 				}
 				free(full_path);
+			} else {
+				fprintf(stderr, "%s\n", "Error: remove_dir() is unable to malloc(). Aborting...");
+				exit(1);
 			}
 		}
 		dirent_struct = readdir(dir);
@@ -147,7 +221,7 @@ void remove_dir(char *dir_path) {
 void remove_file(char *file_path) {
 	int ret = remove(file_path);
 	if (ret == -1) {
-		perror("Remove File Error ");
+		perror("Remove File Error in remove_file() ");
 		exit(1);
 	}
 }
