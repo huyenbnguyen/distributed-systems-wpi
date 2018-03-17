@@ -156,12 +156,12 @@ char *get_new_name(char *old_name) {
 			strcpy(new_name_with_extension, new_name_no_extension);
 			snprintf(new_name_with_extension, new_name_no_extension_len+2, "%s.%s", new_name_with_extension, num_ptr);
 		}
-		if (num_extension == MAX_NUM_EXTENSION + 1) {
+		if (num_extension > MAX_NUM_EXTENSION) {
 			free(new_name_no_extension);
 			free(new_name_with_extension);
 			fprintf(stderr, "%s\n", "Error: Dumpster is full. Aborting...");
 			exit(1);
-		} else if (num_extension > 0) {
+		} else if (num_extension > 0) { // if an number extension is needed 
 			free(new_name_no_extension);
 			return new_name_with_extension;
 		}
