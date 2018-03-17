@@ -26,7 +26,9 @@ void remove_dir(char *dir_path);
 char * get_new_name(char *old_name);
 void touch_file(char *new_name, struct stat *file_stat);
 void copy_file(char *old_name, char *new_name);
-void move_and_touch_recursive(char *old_name, char *new_name, struct stat *file_stat);
+void move_and_touch_file(char *old_name, char *new_name, struct stat *file_stat);
+void move_and_touch_directory(char *old_name, char *new_name, struct stat *file_stat);
+void close_and_remove_directory(DIR *dir, char* dir_path);
 
 int main(int argc, char **argv) {
 	static const char *ENV_NAME = "DUMPSTER"; // environment variable
@@ -93,17 +95,18 @@ void rm_files(dev_t dumpster_device_id) {
 		// your rm must copy the file and then delete it (via the unlink() or remove() system call).
 		if (file_stat.st_dev != dumpster_device_id) {
 			if (is_dir) {
-				move_and_touch_recursive(file_path, new_name, &file_stat);
+				move_and_touch_directory(file_path, new_name, &file_stat);
 			} else {
-				copy_file(file_path, new_name);
-				remove(file_path);
-				touch_file(new_name, &file_stat);
+				move_and_touch_file(file_path, new_name, &file_stat);
 			}
 		} else { 
 			printf("%s\n", "same partition");
 			// If the file to be removed is on the same partition as the dumpster directory, 
 			// the file should not be copied but instead should be renamed (or hard-linked).
-			rename(file_path, new_name);
+			int rename_ret = rename(file_path, new_name);
+			if (rename_ret == -1) {
+				perror("Error using rename()");
+			}
 			touch_file(new_name, &file_stat);
 		}
 		free(new_name);	
@@ -111,50 +114,81 @@ void rm_files(dev_t dumpster_device_id) {
 	}
 }
 
-void move_and_touch_recursive(char *old_name, char *new_name, struct stat *file_stat) {
+void move_and_touch_file(char *old_name, char *new_name, struct stat *file_stat) {
+	copy_file(old_name, new_name);
+	int remove_ret = remove(old_name);
+	if (remove_ret == -1) {
+		perror("Error removing old file");
+		return;
+	}
+	touch_file(new_name, file_stat);
+}
+
+void close_and_remove_directory(DIR *dir, char* dir_path) {
+	int closedir_ret = closedir(dir);
+	if (closedir_ret == -1) {
+		perror("Error closing directory");
+		return;
+	}
+	int rmdir_ret = rmdir(dir_path); // remove empty directory
+	if (rmdir_ret == -1) {
+		perror("Error removing directory");
+		return;
+	}
+}
+
+void move_and_touch_directory(char *old_name, char *new_name, struct stat *file_stat) {
 	DIR *dir = opendir(old_name);
 	if (!dir) {
-		perror("Cannot Open Directory Error");
-		exit(1);
+		perror("Cannot Open Directory Error in move_and_touch_directory()");
+		return;
+	}
+	
+	if (mkdir(new_name, 0700) == -1) {
+		perror("Error mkdir() in move_and_touch_directory() ");
+		return;
 	}
 
+	touch_file(new_name, file_stat);
 	struct dirent *dirent_struct = readdir(dir);
 	while (dirent_struct) {
 		char *file_to_move = dirent_struct->d_name;
 
 		// skip names '.' and '..'
-		if ((strcmp(file_to_delete, ".") != 0 && strcmp(file_to_delete, "..") != 0)) {
+		if ((strcmp(file_to_move, ".") != 0 && strcmp(file_to_move, "..") != 0)) {
 			// get full path of the file_to_delete
-			size_t full_path_len = strlen(dir_path) + strlen(file_to_delete) + 2; // 1 for terminator, 1 for '/' (doesn't matter whether dir_path ends with '/', tested)
-			char *full_path = malloc(full_path_len);
+			size_t full_path_new_len = strlen(new_name) + strlen(file_to_move) + 2; // 1 for terminator, 1 for '/' (doesn't matter whether dir_path ends with '/', tested)
+			size_t full_path_old_len = strlen(old_name) + strlen(file_to_move) + 2;
+			char *full_path_new = malloc(full_path_new_len);
+			char *full_path_old = malloc(full_path_old_len);
 				
-			if (full_path) {
-				snprintf(full_path, full_path_len, "%s/%s", dir_path, file_to_delete);
-				struct stat file_stat;
-				int file_stat_code = stat(full_path, &file_stat);
+			if (full_path_new && full_path_old) {
+				snprintf(full_path_new, full_path_new_len, "%s/%s", new_name, file_to_move);
+				snprintf(full_path_old, full_path_old_len, "%s/%s", old_name, file_to_move);
+				struct stat file_stat_current;
+				int file_stat_code = stat(full_path_old, &file_stat_current);
 			
 				// if file doesn't exist, report error
 				if (file_stat_code == -1) {
-					free(full_path);
 					perror("File Path Error in remove_dir() ");
-					exit(1);
+					return;
 				}
 
-				if (S_ISDIR(file_stat.st_mode)) {
-					remove_dir(full_path);
+				if (S_ISDIR(file_stat_current.st_mode)) {
+					move_and_touch_directory(full_path_old, full_path_new, &file_stat_current);
 				} else {
-					remove_file(full_path);
+					move_and_touch_file(full_path_old, full_path_new, &file_stat_current);
 				}
-				free(full_path);
+				free(full_path_new);
+				free(full_path_old);
 			} else {
 				fprintf(stderr, "%s\n", "Error: remove_dir() is unable to malloc(). Aborting...");
-				exit(1);
+				return;
 			}
 		}
 		dirent_struct = readdir(dir);
 	}
-	closedir(dir);
-	rmdir(dir_path); // remove empty directory
+	close_and_remove_directory(dir, old_name);
 }
 
 void copy_file(char *old_name, char *new_name) {
@@ -163,7 +197,7 @@ void copy_file(char *old_name, char *new_name) {
 	new_file_ptr = fopen(new_name, "w");
 	if (old_file_ptr == NULL || new_file_ptr == NULL) {
 		perror("Error opening file in copy_file()");
-		exit(1);
+		return;
 	}
 	char c = fgetc(old_file_ptr);
 	while (c != EOF) {
@@ -176,25 +210,16 @@ void copy_file(char *old_name, char *new_name) {
 
 void touch_file(char *new_name, struct stat *file_stat) {
 
-	// set time
 	struct utimbuf puttime;	/* to set time */
 	puttime.actime = file_stat->st_atime;
 	puttime.modtime = file_stat->st_mtime;
-	if (utime(new_name, &puttime)) { // set to original timestamp
-		perror("Error setting time in touch_files() ");
-		exit(1);
-	}
+	int utime_ret = utime(new_name, &puttime);
+	int chmod_ret = chmod(new_name, file_stat->st_mode);
+	int chown_ret = chown(new_name, file_stat->st_uid, file_stat->st_gid);
 
-	// set mode
-	if (chmod(new_name, file_stat->st_mode) == -1) {
-		perror("Error setting mode in touch_files() ");
-		exit(1);
-	}
-
-	// set owner
-	if (chown(new_name, file_stat->st_uid, file_stat->st_gid) == -1) {
-		perror("Error setting owner in touch_files() ");
-		exit(1);
+	if (utime_ret == -1 || chmod_ret == -1 || chown_ret == 1) { 
+		perror("Error in touch_files() ");
+		return;
 	}
 }
 
@@ -267,9 +292,8 @@ void remove_dir(char *dir_path) {
 			
 				// if file doesn't exist, report error
 				if (file_stat_code == -1) {
-					free(full_path);
 					perror("File Path Error in remove_dir() ");
-					exit(1);
+					return;
 				}
 
 				if (S_ISDIR(file_stat.st_mode)) {
@@ -280,13 +304,12 @@ void remove_dir(char *dir_path) {
 				free(full_path);
 			} else {
 				fprintf(stderr, "%s\n", "Error: remove_dir() is unable to malloc(). Aborting...");
-				exit(1);
+				return;
 			}
 		}
 		dirent_struct = readdir(dir);
 	}
-	closedir(dir);
-	rmdir(dir_path); // remove empty directory
+	close_and_remove_directory(dir, dir_path);
 }
 
 void remove_file(char *file_path) {
