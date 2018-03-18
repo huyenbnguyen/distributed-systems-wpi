@@ -28,10 +28,12 @@ int main(int argc, char **argv) {
 	}
 
 	// main logic
-	rm_files(dumpster_stat.st_dev);
+	dv_files(dumpster_stat.st_dev);
 }
 
-void rm_files(dev_t dumpster_device_id) {
+void dv_files(dev_t dumpster_device_id) {
+	char *cwd = get_cwd();
+
 	int i;
 	for (i = 0; i < args.num_input_files; i++) {
 		char *file_path = args.input_files[i];
@@ -40,32 +42,37 @@ void rm_files(dev_t dumpster_device_id) {
 		
 		// if file doesn't exist, report error
 		if (file_stat_code == -1) {
+			free(cwd);
 			perror("File Path Error in rm_files() ");
 			exit(1);
 		}
 
 		int is_dir = S_ISDIR(file_stat.st_mode);
 
-		// if file is directory, check if -r is specified
-		if (is_dir) {
-			if (!args.rflag) {
-				fprintf(stderr, "%s\n", "Error: -r is missing for a directory. Aborting...");
-				exit(1);
-			}
-		}
 
-		// force remove
-		if (args.fflag) {
-			if (is_dir) {
-				remove_dir(file_path);
-			} else {
-				remove_file(file_path);
-			}
-			exit(0);
+		// get new name for file
+		char *old_name_copy = (char *) malloc(strlen(file_path)+1); // +1 for null terminator
+		if (!old_name_copy) {
+			free(cwd);
+			fprintf(stderr, "%s\n", "Error: get_new_name() is unable to malloc() for old_name_copy. Aborting...");
+			exit(1);
 		}
-
-		// don't force remove, use dumpster
-		char *new_name = get_new_name(file_path);
+		strcpy(old_name_copy, file_path); // basename() can modify input string => need to copy
+		char *base_name = basename(old_name_copy);
+		size_t new_name_len = strlen(cwd) + strlen(base_name) + 2; // 1 for terminator, 1 for '/'
+		char *new_name = malloc(new_name_len);
+		snprintf(new_name, new_name_len, "%s/%s", cwd, base_name);
+		printf("%s\n", new_name);
+		free(old_name_copy);
+		free(cwd);
+		
+		// check if file already exists
+		int access_ret = access(new_name, F_OK);
+		if (access_ret == 0) {
+			free(new_name);
+			fprintf(stderr, "%s\n", "Error: File already exists in current directory. Aborting...");
+			exit(1);
+		}
 
 		// If the file being removed is not on the same partition as the dumpster directory, 
 		// your rm must copy the file and then delete it (via the unlink() or remove() system call).
@@ -81,25 +88,26 @@ void rm_files(dev_t dumpster_device_id) {
 			// the file should not be copied but instead should be renamed (or hard-linked).
 			int rename_ret = rename(file_path, new_name);
 			if (rename_ret == -1) {
-				free(new_name);	
+				free(new_name);
 				perror("Error using rename()");
 			}
 			touch_file(new_name, &file_stat);
-		}
-		free(new_name);	
+		}	
+		
+		free(new_name);
 		printf("%s\n", "freed");
 	}
 }
 
-/* print a usage message and quit */
-void print_usage(void) {
-    fprintf (stderr, "*** rm - move files to the dumpster *** \n");
-    fprintf (stderr, "usage: ./rm [-f] [-h] [-r] file1 [file2 ...]\n");
-    fprintf (stderr, "\t-f\t\t\tforce a complete remove, do not move to dumpster\n");
-    fprintf (stderr, "\t-h\t\t\tdisplay this help message\n");
-    fprintf (stderr, "\t-r\t\t\tcopy directories recursively\n"); 
-    fprintf (stderr, "\tfile1, file2, etc.\tfiles to be removed\n");  
-    exit(1);
+char *get_cwd() {
+	size_t size = 100;
+	while (1) {
+		char *buffer = (char *) malloc (size);
+		if (getcwd (buffer, size) == buffer)
+			return buffer;
+		free (buffer);
+		size *= 2;
+	}
 }
 
 void parse_args(int argc, char **argv) {
@@ -109,17 +117,11 @@ void parse_args(int argc, char **argv) {
 
 	opterr = 1; /* set to 0 to disable error message */
 
-	while ((c = getopt (argc, argv, "fhr")) != EOF) {
+	while ((c = getopt (argc, argv, "h")) != EOF) {
 		switch (c) {
-		case 'f':
-			args.fflag++;
-			break;
 		case 'h':
 			args.hflag++;
 			break;
-		case 'r':
-		  	args.rflag++;
-		  	break;
 		default:
 			break;
 		}
@@ -136,4 +138,13 @@ void parse_args(int argc, char **argv) {
 		fprintf(stderr, "%s\n", "Error: No input file specified. Aborting...");
 		exit(1);
 	}
+}
+
+/* print a usage message and quit */
+void print_usage(void) {
+    fprintf (stderr, "*** dv - move files from the dumpster to current working directory *** \n");
+    fprintf (stderr, "usage: ./rm [-h] file1 [file2 ...]\n");
+    fprintf (stderr, "\t-h\t\t\tdisplay this help message\n");
+    fprintf (stderr, "\tfile1, file2, etc.\tfiles to be moved\n");  
+    exit(1);
 }

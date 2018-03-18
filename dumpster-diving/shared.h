@@ -34,5 +34,7 @@ void copy_file(char *old_name, char *new_name);
 void move_and_touch_file(char *old_name, char *new_name, struct stat *file_stat);
 void move_and_touch_directory(char *old_name, char *new_name, struct stat *file_stat);
 void close_and_remove_directory(DIR *dir, char* dir_path);
+void dv_files(dev_t dumpster_device_id);
+char *get_cwd();
 
 #endif

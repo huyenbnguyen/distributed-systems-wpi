@@ -37,7 +37,6 @@ int main(int argc, char **argv) {
 			perror("Error making DUMPSTER directory ");
 			exit(1);
 		}
-		touch_file(args.dumpster_path, &dumpster_stat);
 	} else {
 		fprintf(stderr, "%s\n", "Error: DUMPSTER is not a directory. Aborting...");
 		exit(1);

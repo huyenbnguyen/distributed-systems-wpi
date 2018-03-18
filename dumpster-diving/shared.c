@@ -208,39 +208,3 @@ void remove_file(char *file_path) {
 		exit(1);
 	}
 }
-
-void parse_args(int argc, char **argv) {
-	int c;
-	extern int optind, opterr;
-	extern char *optarg;
-
-	opterr = 1; /* set to 0 to disable error message */
-
-	while ((c = getopt (argc, argv, "fhr")) != EOF) {
-		switch (c) {
-		case 'f':
-			args.fflag++;
-			break;
-		case 'h':
-			args.hflag++;
-			break;
-		case 'r':
-		  	args.rflag++;
-		  	break;
-		default:
-			break;
-		}
-	}
-	// printf("%s",*(argv+1));
-	args.num_input_files = argc - optind;
-	args.input_files = argv + optind;
-
-	// -h flag 
-	if (args.hflag) print_usage();
-
-	// check if there's input file
-	if (args.num_input_files == 0) {
-		fprintf(stderr, "%s\n", "Error: No input file specified. Aborting...");
-		exit(1);
-	}
-}
