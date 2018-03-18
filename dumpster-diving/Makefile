@@ -1,4 +1,4 @@
-all: rm dump 
+all: shared.o rm dump 
 
 shared.o: shared.c shared.h
 	gcc -c shared.c -o shared.o
@@ -19,4 +19,4 @@ rm: rm.o
 	 gcc rm.o shared.o -o rm
 
 clean:
-	-rm -f rm.o rm dump.o dumpm
+	-rm -f rm.o rm dump.o dump shared.o

@@ -9,6 +9,11 @@
 int main(int argc, char **argv) {
 	static const char *ENV_NAME = "DUMPSTER"; // environment variable
 
+	// check command line arguments
+	if (argc >= 2) {
+		print_usage();
+	}
+
 	// check if environment variable (aka DUMPSTER) has been set
 	args.dumpster_path = getenv(ENV_NAME);
 	if (!args.dumpster_path) {
