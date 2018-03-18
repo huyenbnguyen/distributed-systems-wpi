@@ -62,13 +62,13 @@ void dv_files(dev_t dumpster_device_id) {
 		size_t new_name_len = strlen(cwd) + strlen(base_name) + 2; // 1 for terminator, 1 for '/'
 		char *new_name = malloc(new_name_len);
 		snprintf(new_name, new_name_len, "%s/%s", cwd, base_name);
-		printf("%s\n", new_name);
+		// printf("%s\n", new_name);
 		free(old_name_copy);
-		free(cwd);
-		
+				
 		// check if file already exists
 		int access_ret = access(new_name, F_OK);
 		if (access_ret == 0) {
+			free(cwd);
 			free(new_name);
 			fprintf(stderr, "%s\n", "Error: File already exists in current directory. Aborting...");
 			exit(1);
@@ -88,15 +88,17 @@ void dv_files(dev_t dumpster_device_id) {
 			// the file should not be copied but instead should be renamed (or hard-linked).
 			int rename_ret = rename(file_path, new_name);
 			if (rename_ret == -1) {
+				free(cwd);
 				free(new_name);
 				perror("Error using rename()");
+				return;
 			}
 			touch_file(new_name, &file_stat);
-		}	
-		
+		}
 		free(new_name);
-		printf("%s\n", "freed");
 	}
+	free(cwd);
+	printf("%s\n", "freed");
 }
 
 char *get_cwd() {

@@ -83,6 +83,7 @@ void rm_files(dev_t dumpster_device_id) {
 			if (rename_ret == -1) {
 				free(new_name);	
 				perror("Error using rename()");
+				return;
 			}
 			touch_file(new_name, &file_stat);
 		}
