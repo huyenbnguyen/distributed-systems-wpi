@@ -38,7 +38,6 @@ void move_and_touch_directory(char *old_name, char *new_name, struct stat *file_
 		return;
 	}
 
-	touch_file(new_name, file_stat);
 	struct dirent *dirent_struct = readdir(dir);
 	while (dirent_struct) {
 		char *file_to_move = dirent_struct->d_name;
@@ -68,6 +67,7 @@ void move_and_touch_directory(char *old_name, char *new_name, struct stat *file_
 				} else {
 					move_and_touch_file(full_path_old, full_path_new, &file_stat_current);
 				}
+				touch_file(new_name, file_stat);
 				free(full_path_new);
 				free(full_path_old);
 			} else {
