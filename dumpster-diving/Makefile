@@ -1,4 +1,4 @@
-all: shared.o rm dump dv
+all: clean shared.o rm dump dv
 
 dv.o: dv.c shared.h
 	gcc -c dv.c -o dv.o
