@@ -32,17 +32,11 @@ int main(int argc, char **argv) {
 	// main logicm
 	int is_dir = S_ISDIR(dumpster_stat.st_mode);
 	if (is_dir) {
-		remove_dir(args.dumpster_path); // this function also deletes the DUMPSTER directory itself
-		if (mkdir(args.dumpster_path, 0700) == -1) { // recreate the DUMPSTER directory
-			perror("Error making DUMPSTER directory ");
-			exit(1);
-		}
-		touch_file(args.dumpster_path, &dumpster_stat); 
+		remove_dir(args.dumpster_path);
 	} else {
 		fprintf(stderr, "%s\n", "Error: DUMPSTER is not a directory. Aborting...");
 		exit(1);
 	}
-
 }
 
 /* print a usage message and quit */

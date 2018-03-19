@@ -10,12 +10,15 @@ void move_and_touch_file(char *old_name, char *new_name, struct stat *file_stat)
 	touch_file(new_name, file_stat);
 }
 
-void close_and_remove_directory(DIR *dir, char* dir_path) {
+void close_directory(DIR *dir) {
 	int closedir_ret = closedir(dir);
 	if (closedir_ret == -1) {
 		perror("Error closing directory");
 		return;
 	}
+}
+
+void remove_directory(char *dir_path) {
 	int rmdir_ret = rmdir(dir_path); // remove empty directory
 	if (rmdir_ret == -1) {
 		perror("Error removing directory");
@@ -76,7 +79,8 @@ void move_and_touch_directory(char *old_name, char *new_name, struct stat *file_
 		}
 		dirent_struct = readdir(dir);
 	}
-	close_and_remove_directory(dir, old_name);
+	close_directory(dir);
+	remove_directory(old_name);
 }
 
 void copy_file(char *old_name, char *new_name) {
@@ -198,7 +202,12 @@ void remove_dir(char *dir_path) {
 		}
 		dirent_struct = readdir(dir);
 	}
-	close_and_remove_directory(dir, dir_path);
+	close_directory(dir);
+
+	// only remove the directory if it's not the dumpster
+	if (strcmp(dir_path, args.dumpster_path) != 0) { 
+		remove_directory(dir_path);
+	}
 }
 
 void remove_file(char *file_path) {
