@@ -1,4 +1,4 @@
-# Project Title
+# Distributed Systems WPI
 
 This repo contains the projects for Distributed Systems course at WPI.
 
@@ -7,8 +7,12 @@ This repo contains the projects for Distributed Systems course at WPI.
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ### Prerequisites
-Set the DUMPSTER environment variable 
+Set the DUMPSTER environment variable.
 
+```
+DUMPSTER="/Users/huyennguyen/Documents/"
+export DUMPSTER
+``` 
 
 ### Installing
 
@@ -17,22 +21,24 @@ A step by step series of examples that tell you have to get a development env ru
 Compile the files
 
 ```
+cd dumpster-diving
 make 
 ```
 
-Running ```./rm``` to move files to the dumpster
+Run ```./rm``` to move files to the dumpster
 
 ```
 ./rm file1.txt 
 ```
-
-
-End with an example of getting some data out of the system or using it for a little demo
-
+Run ```./dv``` to move files from the dumpster to the current working directory
+```
+./dv file1.txt
+```
+Run ```./dump``` to remove files from the dumpster permanently
 ## Running the tests
 
 ```
-cd test
+cd dumpster-diving/test
 ./test_script.sh
 ```
 
