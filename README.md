@@ -36,7 +36,7 @@ Run ```./dv``` to move files from the dumpster to the current working directory
 ```
 Run ```./dump``` to remove files from the dumpster permanently
 ## Running the tests
-*Note: you will want to change environment variables DUMPSTER and PARTITION at the top of test_script.sh before running it. DUMPSTER is the path to the dumpster. PARTITION is the path of the other partition. Also, you want to be in the test directory.*
+*Note: you will want to change environment variables DUMPSTER and PARTITION at the top of ```dumpster-diving/test/test_script.sh``` before running it. DUMPSTER is the path to the dumpster. PARTITION is the path of the other partition. Also, you want to be in the test directory.*
 
 ```
 cd dumpster-diving/test
