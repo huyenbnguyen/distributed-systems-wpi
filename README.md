@@ -44,6 +44,6 @@ cd dumpster-diving/test
 
 ### Break down into end to end tests
 
-These tests measures the time taken to move files within the same and across different partitions.
+These tests measures the time taken to move files within the same and across different partitions.  
 *Note: you will want to change environment variables DUMPSTER and PARTITION at the top of test_script.sh before running it. DUMPSTER is the path to the dumpster. PARTITION is the path of the other partition. Also, you want to be in the test directory.*
 See ```dumpster-diving/dumpster-diving-report.pdf``` for more details.an example
