@@ -76,7 +76,7 @@ void rm_files(dev_t dumpster_device_id) {
 				move_and_touch_file(file_path, new_name, &file_stat);
 			}
 		} else { 
-			printf("%s\n", "same partition");
+			// printf("%s\n", "same partition");
 			// If the file to be removed is on the same partition as the dumpster directory, 
 			// the file should not be copied but instead should be renamed (or hard-linked).
 			int rename_ret = rename(file_path, new_name);
@@ -88,7 +88,7 @@ void rm_files(dev_t dumpster_device_id) {
 			touch_file(new_name, &file_stat);
 		}
 		free(new_name);	
-		printf("%s\n", "freed");
+		// printf("%s\n", "freed");
 	}
 }
 
