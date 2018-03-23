@@ -33,7 +33,8 @@ Run ```./rm``` to move files to the dumpster
 ```
 ./rm file1.txt 
 ```
-Run ```./dv``` to move files from the dumpster to the current working directory
+Run ```./dv``` to move files from the dumpster to the current working directory  
+*Note: the parameters are paths to files, not just their names in the dumpster*
 ```
 ./dv file1.txt
 ```
