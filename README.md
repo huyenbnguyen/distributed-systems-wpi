@@ -50,4 +50,4 @@ cd dumpster-diving/test
 
 These tests measures the time taken to move files within the same and across different partitions.  
 
-See ```dumpster-diving/dumpster-diving-report.pdf``` for more details.an example
+See ```dumpster-diving/dumpster-diving-report.pdf``` for more details.
