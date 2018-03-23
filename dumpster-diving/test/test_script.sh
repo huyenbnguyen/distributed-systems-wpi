@@ -185,7 +185,7 @@ dd if=/dev/zero of=file6.txt count=1 bs=64
 dd if=/dev/zero of=file7.txt count=1 bs=64
 dd if=/dev/zero of=file8.txt count=1 bs=64
 dd if=/dev/zero of=file9.txt count=1 bs=64
-dd if=/dev/zero of=file10.txt count=1 bs=64
+dd if=/dev/zero of=file10.txt cosunt=1 bs=64
 dd if=/dev/zero of=file11.txt count=1 bs=64
 cd ..
 mkdir sublarge10
