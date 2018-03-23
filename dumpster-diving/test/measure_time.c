@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
         } while(tpid != child_pid);
         sync();
         gettimeofday(&end, NULL);
-        printf("%ld\n", ((end.tv_sec * 1000 + end.tv_usec/1000)
+        printf("%ld\n", ((end.tv_sec * 1000000 + end.tv_usec)
             - (start.tv_sec * 1000000 + start.tv_usec)));
         printf("%s\n", "");
         return child_status;
