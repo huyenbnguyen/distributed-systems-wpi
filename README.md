@@ -2,7 +2,11 @@
 
 This repo contains the projects for Distributed Systems course at WPI.
 
-## Getting Started
+## Overview
+### Dumpster Diving
+This is a file backup program. It allows you to move files to a dumpster, instead of removing them permanently.  
+
+## Getting Started for Dumpster Diving
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
