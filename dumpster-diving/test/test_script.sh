@@ -25,7 +25,6 @@ dd if=/dev/zero of=file4.txt count=1000 bs=64
 dd if=/dev/zero of=file5.txt count=10000 bs=64
 dd if=/dev/zero of=file6.txt count=100000 bs=64
 dd if=/dev/zero of=file7.txt count=1000000 bs=64   
-dd if=/dev/zero of=file8.txt count=10000000 bs=64 
 
 # measure time
 ./measure_time $rm_script_path file1.txt
@@ -35,7 +34,6 @@ dd if=/dev/zero of=file8.txt count=10000000 bs=64
 ./measure_time $rm_script_path file5.txt
 ./measure_time $rm_script_path file6.txt
 ./measure_time $rm_script_path file7.txt
-./measure_time $rm_script_path file8.txt
 
 echo "*********************"
 echo "Testing ./rm on DIFFERENT partition"
@@ -52,7 +50,6 @@ dd if=/dev/zero of=file4.txt count=1000 bs=64
 dd if=/dev/zero of=file5.txt count=10000 bs=64
 dd if=/dev/zero of=file6.txt count=100000 bs=64
 dd if=/dev/zero of=file7.txt count=1000000 bs=64   
-dd if=/dev/zero of=file8.txt count=10000000 bs=64 
           
 # measure time
 $current_path/measure_time $rm_script_path file1.txt
@@ -62,11 +59,3 @@ $current_path/measure_time $rm_script_path file4.txt
 $current_path/measure_time $rm_script_path file5.txt
 $current_path/measure_time $rm_script_path file6.txt
 $current_path/measure_time $rm_script_path file7.txt
-$current_path/measure_time $rm_script_path file8.txt
-
-
-
-
-
-
-

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 int main(int argc, char **argv) {
     // printf("%s\n", argv[1]);
@@ -36,7 +37,7 @@ int main(int argc, char **argv) {
         } while(tpid != child_pid);
         sync();
         gettimeofday(&end, NULL);
-        printf("%ld\n", ((end.tv_sec * 1000000 + end.tv_usec)
+        printf("%ld\n", ((end.tv_sec * 1000 + end.tv_usec/1000)
             - (start.tv_sec * 1000000 + start.tv_usec)));
         printf("%s\n", "");
         return child_status;
