@@ -25,7 +25,17 @@ int main(int argc, char **argv) {
         }
     }
 
+    printf("%s\n", "./server activating");
+    printf("\tport:%s\n", args.port);
+    printf("\tdirectory:%s\n", args.current_directory);
+
+    create_socket();
+
     free(current_directory);
+}
+
+int create_socket() {
+
 }
 
 /* print a usage message and quit */

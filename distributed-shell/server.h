@@ -23,5 +23,6 @@ struct arguments {
 void print_usage(char *current_directory);
 void parse_args(int argc, char **argv, char *current_directory);
 char *get_cwd();
+int create_socket();
 
 #endif
