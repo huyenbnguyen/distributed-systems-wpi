@@ -1,6 +1,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#define _XOPEN_SOURCE 
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>

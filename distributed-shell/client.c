@@ -75,6 +75,7 @@ int signin(int sock_fd) {
 	}
 	puts("Username sent successfully!");
 
+	// read the random string sent by the server
 	int bytes_read = read(sock_fd, random_str, BUFFER_SIZE-1);
 	if (bytes_read < 0) {
         return 0;
@@ -82,7 +83,11 @@ int signin(int sock_fd) {
     }
     random_str[bytes_read] = '\0';
     printf("%s\n", random_str);
-    
+
+    // encrypt password
+    char *encrypted_password = crypt(DEFAULT_PASSWORD, random_str);
+    printf("%s\n", encrypted_password);
+
 	return 1;
 }
 
