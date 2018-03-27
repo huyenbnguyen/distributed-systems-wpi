@@ -114,7 +114,31 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
     }
     
     if (pid == 0) { // this is done by the child process
+        
         int valid_credentials = check_credentials(incoming_sock_fd); 
+        if (valid_credentials) {
+
+            // tell the client that the credentials are good and now it can send the command 
+            char *check_credentials_ok = "ok";
+            int write_ret = write(incoming_sock_fd, check_credentials_ok, strlen(check_credentials_ok));
+            if (write_ret == -1) {
+                perror("write() failed");
+                return;
+            }
+
+            char command[BUFFER_SIZE];
+            bzero(command,BUFFER_SIZE);
+            int bytes_read = read(incoming_sock_fd,command,BUFFER_SIZE-1); // -1 for null terminator
+            if (bytes_read < 0) {
+                perror("read() failed");
+                return;
+            }
+            command[bytes_read] = '\0'; // do this so we can print as string
+            printf("Here is the command: %s\n",command);
+
+        } else {
+
+        }
 
     } else do { // this is done by the parent process
         if ((pid = waitpid(pid, &status, WNOHANG)) == -1)
@@ -159,7 +183,11 @@ int check_credentials(int incoming_sock_fd) {
     printf("%s\n", random_str);
 
     // send random number to the client
-    write(incoming_sock_fd, random_str, sizeof(random_str));
+    int write_ret = write(incoming_sock_fd, random_str, sizeof(random_str));
+    if (write_ret == -1) {
+        perror("write() failed");
+        return 0;
+    }
 
     // read encrypted password sent by client
     bytes_read = read(incoming_sock_fd, encrypted_password_client, BUFFER_SIZE-1);
@@ -172,6 +200,7 @@ int check_credentials(int incoming_sock_fd) {
 
     // check encrypted password
     char *encrypted_password_server = crypt(DEFAULT_PASSWORD, random_str);
+    printf("Here is the encrypted password on the server: %s\n", encrypted_password_server);
     if (strcmp(encrypted_password_server, encrypted_password_client) != 0) {
         fprintf(stderr, "%s\n", "Wrong password. Aborting...");
         return 0;

@@ -45,9 +45,15 @@ void establish_connection() {
 		exit(1);
 	}
 
-	int sign_in_successful = signin(sock);
-
 	freeaddrinfo(servinfo);
+
+	int sign_in_successful = signin(sock);
+	if (sign_in_successful) {
+
+		run_command_on_server(sock);
+	}
+
+	
 
 	// /* read from stdin, sending to server, until quit */
 	// char buf[80];
@@ -64,9 +70,27 @@ void establish_connection() {
 	close(sock);
 }
 
+void run_command_on_server(int sock_fd) {
+	if (args.command == NULL || args.host == NULL) {
+		puts("Command or host was not specified. Aborting...");
+		print_usage();
+	}
+
+	printf("Command is %s\n", args.command);
+	int write_ret = write(sock_fd, args.command, strlen(args.command));
+	if (write_ret == -1) {
+		perror("write() failed");
+		return;
+	}
+	puts("Command sent successfully!");
+
+	
+
+}
+
 int signin(int sock_fd) {
-	char random_str[BUFFER_SIZE];
-    bzero(random_str,BUFFER_SIZE);
+	char buffer[BUFFER_SIZE];
+    bzero(buffer,BUFFER_SIZE);
 	puts("Sending username...");
 	int write_ret = write(sock_fd, DEFAULT_USERNAME, strlen(DEFAULT_USERNAME));
 	if (write_ret == -1) {
@@ -76,17 +100,17 @@ int signin(int sock_fd) {
 	puts("Username sent successfully!");
 
 	// read the random string sent by the server
-	int bytes_read = read(sock_fd, random_str, BUFFER_SIZE-1);
+	int bytes_read = read(sock_fd, buffer, BUFFER_SIZE-1);
 	if (bytes_read < 0) {
-        return 0;
         perror("read() failed");
+        return 0;
     }
-    random_str[bytes_read] = '\0';
-    printf("%s\n", random_str);
+    buffer[bytes_read] = '\0';
+    printf("%s\n", buffer);
 
     // encrypt password
-    char *encrypted_password = crypt(DEFAULT_PASSWORD, random_str);
-    printf("%s\n", encrypted_password);
+    char *encrypted_password = crypt(DEFAULT_PASSWORD, buffer);
+    printf("Client: Encrypted password %s\n", encrypted_password);
 
     // send encrypted password 
     write_ret = write(sock_fd, encrypted_password, strlen(encrypted_password));
@@ -94,7 +118,18 @@ int signin(int sock_fd) {
     	perror("write() failed");
     	return 0;
     }
-	return 1;
+
+    // read the response from the server
+    bzero(buffer,BUFFER_SIZE);
+    bytes_read = read(sock_fd, buffer, BUFFER_SIZE-1);
+	if (bytes_read < 0) {
+        perror("read() failed");
+        return 0;
+    }
+    buffer[bytes_read] = '\0';
+    printf("Server said credentials were %s\n", buffer);
+
+	return strcmp(buffer, "ok") == 0;
 }
 
 void initialize_default_values() {
