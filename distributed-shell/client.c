@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
 	initialize_default_values();
 	parse_args(argc, argv);
 	if (args.port == NULL) {
-		args.port = defaults.port;
+		args.port = DEFAULT_PORT;
 	}
 	establish_connection();
 }
@@ -68,7 +68,7 @@ int signin(int sock_fd) {
 	char random_str[BUFFER_SIZE];
     bzero(random_str,BUFFER_SIZE);
 	puts("Sending username...");
-	int write_ret = write(sock_fd, defaults.username, strlen(defaults.username));
+	int write_ret = write(sock_fd, DEFAULT_USERNAME, strlen(DEFAULT_USERNAME));
 	if (write_ret == -1) {
 		perror("write() failed");
 		return 0;
@@ -82,13 +82,12 @@ int signin(int sock_fd) {
     }
     random_str[bytes_read] = '\0';
     printf("%s\n", random_str);
+    
 	return 1;
 }
 
 void initialize_default_values() {
-	defaults.port = "9898";
-	defaults.username = "huyen";
-	defaults.password = "abc";
+	
 }
 
 void parse_args(int argc, char **argv) {

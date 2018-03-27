@@ -13,14 +13,14 @@
 
 #define BUFFER_SIZE 1024
 
-static const char *DEFAULT_PORT = "9898";
-static const char *DEFAULT_USERNAME = "huyen";
-static const char *DEFAULT_PASSWORD = "abc";
+const char *DEFAULT_PORT = "9898";
+const char *DEFAULT_USERNAME = "huyen";
+const char *DEFAULT_PASSWORD = "abc";
 
 struct arguments {
    char *command;
    char *host;
-   char *port;
+   const char *port;
 } args;
 
 void print_usage();

@@ -7,12 +7,11 @@
 #include "server.h"
 
 int main(int argc, char **argv) {
-    char *default_port = "9898";
     char *current_directory = get_cwd();
 
     parse_args(argc, argv, current_directory);
     if(args.port == NULL) {
-        args.port = default_port;
+        args.port = DEFAULT_PORT;
     }
     if (args.current_directory == NULL) {
         args.current_directory = current_directory;
@@ -152,7 +151,7 @@ int check_credentials(int incoming_sock_fd) {
     printf("%s\n", random_str);
     // send to the client
     write(incoming_sock_fd, random_str, sizeof(random_str));
-    
+
 
     return 1;
 }

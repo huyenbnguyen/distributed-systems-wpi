@@ -22,9 +22,11 @@
 #define QUEUE_LIMIT 5
 #define BUFFER_SIZE 1024
 
+const char *DEFAULT_PORT = "9898";
+
 struct arguments {
    char *current_directory;
-   char *port;
+   const char *port;
 } args;
 
 void print_usage(char *current_directory);
