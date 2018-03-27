@@ -27,5 +27,6 @@ void print_usage();
 void parse_args(int argc, char **argv);
 void establish_connection();
 void initialize_default_values();
+int signin(int sock_fd);
 
 #endif

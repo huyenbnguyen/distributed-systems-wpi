@@ -16,8 +16,11 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <netdb.h>
+#include <sys/wait.h>
+#include <time.h>
 
 #define QUEUE_LIMIT 5
+#define BUFFER_SIZE 1024
 
 struct arguments {
    char *current_directory;
@@ -28,5 +31,7 @@ void print_usage(char *current_directory);
 void parse_args(int argc, char **argv, char *current_directory);
 char *get_cwd();
 void establish_connection();
+void spawn_child_process(int server_sock_fd, int incoming_sock_fd);
+int check_credentials(int incoming_sock_fd);
 
 #endif

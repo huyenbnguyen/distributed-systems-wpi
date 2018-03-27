@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 }
 
 void establish_connection() {
-    int sock, serv_host_port, newsock, getaddrinfo_ret;
+    int server_sock_fd, serv_host_port, incoming_sock_fd, getaddrinfo_ret;
     socklen_t clilen;
     struct sockaddr_in cli_addr, serv_addr;
     
@@ -52,21 +52,21 @@ void establish_connection() {
     }  
 
     /* create socket from which to read */
-    if ((sock = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol)) < 0) {
+    if ((server_sock_fd = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol)) < 0) {
         freeaddrinfo(servinfo);
         perror("creating socket");
         return;
     }
 
     /* bind our local address so client can connect to us */
-    if (bind(sock, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
+    if (bind(server_sock_fd, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
         freeaddrinfo(servinfo);
         perror("can't bind to local address");
         return;
     }
 
     /* mark socket as passive, with backlog num */
-    if (listen(sock, QUEUE_LIMIT) == -1) {
+    if (listen(server_sock_fd, QUEUE_LIMIT) == -1) {
         freeaddrinfo(servinfo);
         perror("listen");
         return;
@@ -76,14 +76,16 @@ void establish_connection() {
     clilen = sizeof(cli_addr);
 
     /* wait here (block) for connection */ 
-    newsock = accept(sock, (struct sockaddr *) &cli_addr, &clilen);
-    if (newsock < 0) {
+    incoming_sock_fd = accept(server_sock_fd, (struct sockaddr *) &cli_addr, &clilen);
+    if (incoming_sock_fd < 0) {
         freeaddrinfo(servinfo);
         perror("accepting connection");
         return;
     }
-   
-   freeaddrinfo(servinfo);
+
+    printf("%s\n", "Received connection");
+    spawn_child_process(server_sock_fd, incoming_sock_fd);
+    freeaddrinfo(servinfo);
    //  char message[1024];
    // int bytes;
    // /* read data until no more */
@@ -98,9 +100,50 @@ void establish_connection() {
    //   printf("server exiting\n");
 
     /* close connected socket and original socket */
-    close(newsock);
-    close(sock);
+    close(incoming_sock_fd);
+    close(server_sock_fd);
+}
+
+void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
+    pid_t pid;
+    time_t t;
+    int status;
+
+    if ((pid = fork()) < 0) {
+        perror("fork() error");
+        return;
+    }
     
+    if (pid == 0) { // this is done by the child process
+        int valid_credentials = check_credentials(incoming_sock_fd);  
+    } else do { // this is done by the parent process
+        if ((pid = waitpid(pid, &status, WNOHANG)) == -1)
+            perror("wait() error");
+        else if (pid == 0) {
+            time(&t);
+            printf("child is still running at %s", ctime(&t));
+            sleep(1);
+        }
+        else {
+            if (WIFEXITED(status))
+                printf("child exited with status of %d\n", WEXITSTATUS(status));
+            else 
+                puts("child did not exit successfully");
+        }
+    } while (pid == 0);
+}
+
+int check_credentials(int incoming_sock_fd) {
+    char buffer[BUFFER_SIZE];
+    bzero(buffer,BUFFER_SIZE);
+    int bytes_read = read(incoming_sock_fd,buffer,BUFFER_SIZE-1); // -1 for null terminator
+    if (bytes_read < 0) {
+        return 1;
+        perror("read() failed");
+    }
+    buffer[bytes_read] = '\0'; // do this so we can print as string
+    printf("Here is the message: %s\n",buffer);
+    return 0;
 }
 
 /* print a usage message and quit */

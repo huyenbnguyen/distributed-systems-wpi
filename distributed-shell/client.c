@@ -33,7 +33,7 @@ void establish_connection() {
 	puts("Done. Creating socket...");
 	if ((sock = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol)) < 0) {
 		freeaddrinfo(servinfo);
-		perror("creating socket");
+		perror("socket() failed");
 		exit(1);
 	}
 
@@ -41,11 +41,11 @@ void establish_connection() {
 	puts("Created. Trying connection to server...");
 	if (connect(sock, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
 		freeaddrinfo(servinfo);
-		perror("can't connect");
+		perror("connect() failed");
 		exit(1);
 	}
 
-	// if (signin(sock, ))
+	int sign_in_successful = signin(sock);
 
 	freeaddrinfo(servinfo);
 
@@ -62,6 +62,17 @@ void establish_connection() {
 
 	/* close socket */
 	close(sock);
+}
+
+int signin(int sock_fd) {
+	puts("Sending username...");
+	int write_ret = write(sock_fd, defaults.username, strlen(defaults.username));
+	if (write_ret == -1) {
+		perror("write() failed");
+		return 0;
+	}
+	puts("Username sent successfully!");
+	return 1;
 }
 
 void initialize_default_values() {
