@@ -23,6 +23,8 @@
 #define BUFFER_SIZE 1024
 
 const char *DEFAULT_PORT = "9898";
+const char *DEFAULT_USERNAME = "huyen";
+const char *DEFAULT_PASSWORD = "abc";
 
 struct arguments {
    char *current_directory;

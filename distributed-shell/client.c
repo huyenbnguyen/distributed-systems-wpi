@@ -88,6 +88,12 @@ int signin(int sock_fd) {
     char *encrypted_password = crypt(DEFAULT_PASSWORD, random_str);
     printf("%s\n", encrypted_password);
 
+    // send encrypted password 
+    write_ret = write(sock_fd, encrypted_password, strlen(encrypted_password));
+    if (write_ret == -1) {
+    	perror("write() failed");
+    	return 0;
+    }
 	return 1;
 }
 

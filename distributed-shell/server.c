@@ -134,25 +134,49 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
 }
 
 int check_credentials(int incoming_sock_fd) {
-    char username[BUFFER_SIZE];
+    char username[BUFFER_SIZE], encrypted_password_client[BUFFER_SIZE];
     bzero(username,BUFFER_SIZE);
+    bzero(encrypted_password_client,BUFFER_SIZE);
     int bytes_read = read(incoming_sock_fd,username,BUFFER_SIZE-1); // -1 for null terminator
     if (bytes_read < 0) {
-        return 0;
         perror("read() failed");
+        return 0;
     }
     username[bytes_read] = '\0'; // do this so we can print as string
-    printf("Here is the message: %s\n",username);
-    int random_num = generate_random_num();
 
+    // check username
+    if (strcmp(username, DEFAULT_USERNAME) != 0) {
+        fprintf(stderr, "%s\n", "Wrong username. Aborting...");
+        return 0;
+    }
+    printf("Here is the username: %s\n",username);
+
+    // generate random number 
+    int random_num = generate_random_num();
     // convert to string
     char random_str[65]; 
     snprintf(random_str, 65, "%d", random_num);
     printf("%s\n", random_str);
-    // send to the client
+
+    // send random number to the client
     write(incoming_sock_fd, random_str, sizeof(random_str));
 
+    // read encrypted password sent by client
+    bytes_read = read(incoming_sock_fd, encrypted_password_client, BUFFER_SIZE-1);
+    if (bytes_read < 0) {
+        perror("read() failed");
+        return 0;
+    }
+    encrypted_password_client[bytes_read] = '\0'; // do this so we can print as string
+    printf("Here is the encrypted password: %s\n",encrypted_password_client);
 
+    // check encrypted password
+    char *encrypted_password_server = crypt(DEFAULT_PASSWORD, random_str);
+    if (strcmp(encrypted_password_server, encrypted_password_client) != 0) {
+        fprintf(stderr, "%s\n", "Wrong password. Aborting...");
+        return 0;
+    }
+    puts("Correct credentials!");
     return 1;
 }
 
