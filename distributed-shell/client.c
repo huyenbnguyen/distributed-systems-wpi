@@ -7,19 +7,16 @@
 #include "client.h"
 
 int main(int argc, char **argv) {
-
-	char *default_port = "9898";
-
+	initialize_default_values();
 	parse_args(argc, argv);
 	if (args.port == NULL) {
-		args.port = default_port;
+		args.port = defaults.port;
 	}
-
 	establish_connection();
 }
 
 void establish_connection() {
-	 int sock, getaddrinfo_ret;
+	int sock, getaddrinfo_ret;
 
 	// look up hostname	
 	struct addrinfo hints, *servinfo;
@@ -48,6 +45,8 @@ void establish_connection() {
 		exit(1);
 	}
 
+	// if (signin(sock, ))
+
 	freeaddrinfo(servinfo);
 
 	// /* read from stdin, sending to server, until quit */
@@ -63,6 +62,12 @@ void establish_connection() {
 
 	/* close socket */
 	close(sock);
+}
+
+void initialize_default_values() {
+	defaults.port = "9898";
+	defaults.username = "huyen";
+	defaults.password = "abc";
 }
 
 void parse_args(int argc, char **argv) {

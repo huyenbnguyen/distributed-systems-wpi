@@ -17,8 +17,15 @@ struct arguments {
    char *port;
 } args;
 
+struct default_values {
+	char *port;
+	char *username;
+	char *password;
+} defaults;
+
 void print_usage();
 void parse_args(int argc, char **argv);
 void establish_connection();
+void initialize_default_values();
 
 #endif
