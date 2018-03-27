@@ -29,13 +29,73 @@ int main(int argc, char **argv) {
     printf("\tport:%s\n", args.port);
     printf("\tdirectory:%s\n", args.current_directory);
 
-    create_socket();
+    establish_connection();
 
     free(current_directory);
 }
 
-int create_socket() {
+void establish_connection() {
+    int sock, serv_host_port, newsock, getaddrinfo_ret;
+    socklen_t clilen;
+    struct sockaddr_in cli_addr, serv_addr;
+    
+    // see here for the reason: https://beej.us/guide/bgnet/html/multi/getaddrinfoman.html 
+    struct addrinfo hints, *servinfo;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC; // use AF_INET6 to force IPv6
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE; // allow hostname to be NULL
+    if ((getaddrinfo_ret = getaddrinfo(NULL, args.port, &hints, &servinfo)) != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(getaddrinfo_ret));
+        exit(1);
+    }  
 
+    /* create socket from which to read */
+    if ((sock = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol)) < 0) {
+        perror("creating socket");
+        return;
+    }
+
+    /* bind our local address so client can connect to us */
+    if (bind(sock, servinfo->ai_addr, servinfom->ai_addrlen) < 0) {
+        perror("can't bind to local address");
+        return;
+    }
+
+    /* mark socket as passive, with backlog num */
+    if (listen(sock, QUEUE_LIMIT) == -1) {
+        perror("listen");
+        return;
+    }
+
+    printf("Socket ready to go! Accepting connections....\n\n");
+    clilen = sizeof(cli_addr);
+
+    /* wait here (block) for connection */ 
+    newsock = accept(sock, (struct sockaddr *) &cli_addr, &clilen);
+    if (newsock < 0) {
+        perror("accepting connection");
+        return;
+    }
+   
+   freeaddrinfo(servinfo);
+   //  char message[1024];
+   // int bytes;
+   // /* read data until no more */
+   // while ((bytes = read(newsock, message, 1024)) > 0) {
+   //   message[bytes] = '\0';  do this just so we can print as string 
+   //   printf("received: '%s'\n", message);
+   // }
+
+   // if (bytes == -1)
+   //   perror("error in read");
+   // else
+   //   printf("server exiting\n");
+
+    /* close connected socket and original socket */
+    close(newsock);
+    close(sock);
+    
 }
 
 /* print a usage message and quit */

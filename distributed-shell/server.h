@@ -14,6 +14,10 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <netdb.h>
+
+#define QUEUE_LIMIT 5
 
 struct arguments {
    char *current_directory;
@@ -23,6 +27,6 @@ struct arguments {
 void print_usage(char *current_directory);
 void parse_args(int argc, char **argv, char *current_directory);
 char *get_cwd();
-int create_socket();
+void establish_connection();
 
 #endif
