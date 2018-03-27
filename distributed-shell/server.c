@@ -57,7 +57,7 @@ void establish_connection() {
     }
 
     /* bind our local address so client can connect to us */
-    if (bind(sock, servinfo->ai_addr, servinfom->ai_addrlen) < 0) {
+    if (bind(sock, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
         perror("can't bind to local address");
         return;
     }
