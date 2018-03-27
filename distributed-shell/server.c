@@ -46,24 +46,28 @@ void establish_connection() {
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE; // allow hostname to be NULL
     if ((getaddrinfo_ret = getaddrinfo(NULL, args.port, &hints, &servinfo)) != 0) {
+        freeaddrinfo(servinfo);
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(getaddrinfo_ret));
-        exit(1);
+        return;
     }  
 
     /* create socket from which to read */
     if ((sock = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol)) < 0) {
+        freeaddrinfo(servinfo);
         perror("creating socket");
         return;
     }
 
     /* bind our local address so client can connect to us */
     if (bind(sock, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
+        freeaddrinfo(servinfo);
         perror("can't bind to local address");
         return;
     }
 
     /* mark socket as passive, with backlog num */
     if (listen(sock, QUEUE_LIMIT) == -1) {
+        freeaddrinfo(servinfo);
         perror("listen");
         return;
     }
@@ -74,6 +78,7 @@ void establish_connection() {
     /* wait here (block) for connection */ 
     newsock = accept(sock, (struct sockaddr *) &cli_addr, &clilen);
     if (newsock < 0) {
+        freeaddrinfo(servinfo);
         perror("accepting connection");
         return;
     }

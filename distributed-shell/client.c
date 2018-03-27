@@ -27,6 +27,7 @@ void establish_connection() {
 	hints.ai_family = AF_UNSPEC; // use AF_INET6 to force IPv6
 	hints.ai_socktype = SOCK_STREAM;
 	if ((getaddrinfo_ret = getaddrinfo(args.host, args.port, &hints, &servinfo)) != 0) {
+		freeaddrinfo(servinfo);
 	    fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(getaddrinfo_ret));
 	    exit(1);
 	}
@@ -34,6 +35,7 @@ void establish_connection() {
 	/* create a TCP socket (an Internet stream socket). */
 	puts("Done. Creating socket...");
 	if ((sock = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol)) < 0) {
+		freeaddrinfo(servinfo);
 		perror("creating socket");
 		exit(1);
 	}
@@ -41,6 +43,7 @@ void establish_connection() {
 	/* socket created, so connect to the server */
 	puts("Created. Trying connection to server...");
 	if (connect(sock, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
+		freeaddrinfo(servinfo);
 		perror("can't connect");
 		exit(1);
 	}
