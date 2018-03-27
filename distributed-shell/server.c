@@ -115,7 +115,8 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
     }
     
     if (pid == 0) { // this is done by the child process
-        int valid_credentials = check_credentials(incoming_sock_fd);  
+        int valid_credentials = check_credentials(incoming_sock_fd); 
+
     } else do { // this is done by the parent process
         if ((pid = waitpid(pid, &status, WNOHANG)) == -1)
             perror("wait() error");
@@ -134,16 +135,31 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
 }
 
 int check_credentials(int incoming_sock_fd) {
-    char buffer[BUFFER_SIZE];
-    bzero(buffer,BUFFER_SIZE);
-    int bytes_read = read(incoming_sock_fd,buffer,BUFFER_SIZE-1); // -1 for null terminator
+    char username[BUFFER_SIZE];
+    bzero(username,BUFFER_SIZE);
+    int bytes_read = read(incoming_sock_fd,username,BUFFER_SIZE-1); // -1 for null terminator
     if (bytes_read < 0) {
-        return 1;
+        return 0;
         perror("read() failed");
     }
-    buffer[bytes_read] = '\0'; // do this so we can print as string
-    printf("Here is the message: %s\n",buffer);
-    return 0;
+    username[bytes_read] = '\0'; // do this so we can print as string
+    printf("Here is the message: %s\n",username);
+    int random_num = generate_random_num();
+
+    // convert to string
+    char random_str[65]; 
+    snprintf(random_str, 65, "%d", random_num);
+    printf("%s\n", random_str);
+    // send to the client
+    write(incoming_sock_fd, random_str, sizeof(random_str));
+    
+
+    return 1;
+}
+
+int generate_random_num() {
+    srand(time(0)); // Use current time as seed for random generator
+    return rand();
 }
 
 /* print a usage message and quit */

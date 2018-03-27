@@ -65,6 +65,8 @@ void establish_connection() {
 }
 
 int signin(int sock_fd) {
+	char random_str[BUFFER_SIZE];
+    bzero(random_str,BUFFER_SIZE);
 	puts("Sending username...");
 	int write_ret = write(sock_fd, defaults.username, strlen(defaults.username));
 	if (write_ret == -1) {
@@ -72,6 +74,14 @@ int signin(int sock_fd) {
 		return 0;
 	}
 	puts("Username sent successfully!");
+
+	int bytes_read = read(sock_fd, random_str, BUFFER_SIZE-1);
+	if (bytes_read < 0) {
+        return 0;
+        perror("read() failed");
+    }
+    random_str[bytes_read] = '\0';
+    printf("%s\n", random_str);
 	return 1;
 }
 
