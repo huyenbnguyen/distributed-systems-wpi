@@ -77,6 +77,8 @@ void run_command_on_server(int sock_fd) {
 	}
 
 	printf("Command is %s\n", args.command);
+
+	// send command to server
 	int write_ret = write(sock_fd, args.command, strlen(args.command));
 	if (write_ret == -1) {
 		perror("write() failed");

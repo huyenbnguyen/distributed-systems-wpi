@@ -100,7 +100,7 @@ void establish_connection() {
 
     /* close connected socket and original socket */
     close(incoming_sock_fd);
-    close(server_sock_fd);
+    
 }
 
 void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
@@ -114,7 +114,7 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
     }
     
     if (pid == 0) { // this is done by the child process
-        
+        close(server_sock_fd);
         int valid_credentials = check_credentials(incoming_sock_fd); 
         if (valid_credentials) {
 
