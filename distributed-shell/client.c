@@ -7,7 +7,6 @@
 #include "client.h"
 
 int main(int argc, char **argv) {
-	initialize_default_values();
 	parse_args(argc, argv);
 	if (args.port == NULL) {
 		args.port = DEFAULT_PORT;
@@ -37,6 +36,12 @@ void establish_connection() {
 		exit(1);
 	}
 
+	// set timeout to stop reading (useful when print output from server)
+	struct timeval tv;
+	tv.tv_sec = 0;
+	tv.tv_usec = 500000;
+	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+
 	/* socket created, so connect to the server */
 	puts("Created. Trying connection to server...");
 	if (connect(sock, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
@@ -46,27 +51,9 @@ void establish_connection() {
 	}
 
 	freeaddrinfo(servinfo);
-
-	int sign_in_successful = signin(sock);
-	if (sign_in_successful) {
-
+	if (signin(sock)) {
 		run_command_on_server(sock);
 	}
-
-	
-
-	// /* read from stdin, sending to server, until quit */
-	// char buf[80];
-	// while (fgets(buf, 80, stdin)) {
-	// buf[strlen(buf)-1] = '\0';  remove last \n 
-	// printf("sending: '%s'\n", buf);
-	// if (write(sock, buf, strlen(buf)) == -1) {
-	// perror("write failed");
-	// break;
-	// }
-	// }
-
-	/* close socket */
 	close(sock);
 }
 
@@ -87,7 +74,15 @@ void run_command_on_server(int sock_fd) {
 	puts("Command sent successfully!");
 
 	
-
+	// display command output from server
+	char buffer[BUFFER_SIZE];
+    int bytes_read = 0;
+    while (bytes_read >= 0) {
+    	bzero(buffer,BUFFER_SIZE);
+    	bytes_read = read(sock_fd, buffer, BUFFER_SIZE-1);
+	    buffer[bytes_read] = '\0';
+	    printf("%s", buffer);
+    }
 }
 
 int signin(int sock_fd) {
@@ -132,10 +127,6 @@ int signin(int sock_fd) {
     printf("Server said credentials were %s\n", buffer);
 
 	return strcmp(buffer, "ok") == 0;
-}
-
-void initialize_default_values() {
-	
 }
 
 void parse_args(int argc, char **argv) {

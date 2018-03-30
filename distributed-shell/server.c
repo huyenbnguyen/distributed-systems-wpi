@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     printf("\tdirectory:%s\n", args.current_directory);
 
     establish_connection();
-
+    
     free(current_directory);
 }
 
@@ -64,9 +64,11 @@ void establish_connection() {
         return;
     }
 
+    freeaddrinfo(servinfo);
+
     /* mark socket as passive, with backlog num */
     if (listen(server_sock_fd, QUEUE_LIMIT) == -1) {
-        freeaddrinfo(servinfo);
+        
         perror("listen");
         return;
     }
@@ -74,33 +76,18 @@ void establish_connection() {
     printf("Socket ready to go! Accepting connections....\n\n");
     clilen = sizeof(cli_addr);
 
-    /* wait here (block) for connection */ 
-    incoming_sock_fd = accept(server_sock_fd, (struct sockaddr *) &cli_addr, &clilen);
-    if (incoming_sock_fd < 0) {
-        freeaddrinfo(servinfo);
-        perror("accepting connection");
-        return;
-    }
+    // while (1) {
+        /* wait here (block) for connection */ 
+        incoming_sock_fd = accept(server_sock_fd, (struct sockaddr *) &cli_addr, &clilen);
+        if (incoming_sock_fd < 0) {
+            perror("accepting connection");
+            return;
+        }
 
-    printf("%s\n", "Received connection");
-    spawn_child_process(server_sock_fd, incoming_sock_fd);
-    freeaddrinfo(servinfo);
-   //  char message[1024];
-   // int bytes;
-   // /* read data until no more */
-   // while ((bytes = read(newsock, message, 1024)) > 0) {
-   //   message[bytes] = '\0';  do this just so we can print as string 
-   //   printf("received: '%s'\n", message);
-   // }
-
-   // if (bytes == -1)
-   //   perror("error in read");
-   // else
-   //   printf("server exiting\n");
-
-    /* close connected socket and original socket */
-    close(incoming_sock_fd);
-    
+        printf("%s\n", "Received connection");
+        spawn_child_process(server_sock_fd, incoming_sock_fd);
+    // }
+    close(server_sock_fd);
 }
 
 void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
@@ -114,7 +101,6 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
     }
     
     if (pid == 0) { // this is done by the child process
-        close(server_sock_fd);
         int valid_credentials = check_credentials(incoming_sock_fd); 
         if (valid_credentials) {
 
@@ -126,16 +112,8 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
                 return;
             }
 
-            char command[BUFFER_SIZE];
-            bzero(command,BUFFER_SIZE);
-            int bytes_read = read(incoming_sock_fd,command,BUFFER_SIZE-1); // -1 for null terminator
-            if (bytes_read < 0) {
-                perror("read() failed");
-                return;
-            }
-            command[bytes_read] = '\0'; // do this so we can print as string
-            printf("Here is the command: %s\n",command);
-
+            // now execute the command
+            exec_command(incoming_sock_fd);
         } else {
 
         }
@@ -155,6 +133,43 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
                 puts("child did not exit successfully");
         }
     } while (pid == 0);
+}
+
+void exec_command(int incoming_sock_fd) {
+    char command[BUFFER_SIZE];
+    bzero(command,BUFFER_SIZE);
+    int bytes_read = read(incoming_sock_fd,command,BUFFER_SIZE-1); // -1 for null terminator
+    if (bytes_read < 0) {
+        perror("read() failed");
+        return;
+    }
+    command[bytes_read] = '\0'; // do this so we can print as string
+    printf("Here is the command: %s\n",command);
+
+    // now execute the command
+    FILE *fp;
+    int status;
+    char buffer[BUFFER_SIZE];
+
+    fp = popen(command, "r"); // popen does fork() when it runs command
+    if (fp == NULL) {
+        status = pclose(fp);
+        close(incoming_sock_fd);
+        fprintf(stderr, "%s\n", "Unknown command");
+        return;
+    }
+
+    while (fgets(buffer, BUFFER_SIZE, fp) != NULL) {
+        int write_ret = write(incoming_sock_fd, buffer, BUFFER_SIZE-1);
+        if (write_ret == -1) {
+            status = pclose(fp);
+            close(incoming_sock_fd);
+            perror("write() failed");
+            return;
+        }
+    }
+    status = pclose(fp);
+    close(incoming_sock_fd);
 }
 
 int check_credentials(int incoming_sock_fd) {
