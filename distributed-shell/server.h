@@ -34,7 +34,7 @@ struct arguments {
 
 void print_usage(char *current_directory);
 void parse_args(int argc, char **argv);
-char *get_cwd();
+void get_cwd();
 void establish_connection();
 void spawn_child_process(int server_sock_fd, int incoming_sock_fd);
 int check_credentials(int incoming_sock_fd);

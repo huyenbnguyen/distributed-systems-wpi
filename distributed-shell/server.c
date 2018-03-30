@@ -280,11 +280,11 @@ void parse_args(int argc, char **argv) {
     }
 }
 
-char *get_cwd() {
+void get_cwd() {
     while (1) {
         current_directory = (char *) malloc (size);
         if (getcwd (current_directory, size) == current_directory)
-            return current_directory;
+            return;
         free (current_directory);
         size *= 2;
     }
