@@ -77,13 +77,13 @@ void establish_connection() {
     clilen = sizeof(cli_addr);
 
     while (1) {
+        puts("Listening to requests...");
         /* wait here (block) for connection */ 
         incoming_sock_fd = accept(server_sock_fd, (struct sockaddr *) &cli_addr, &clilen);
         if (incoming_sock_fd < 0) {
             perror("accept() failed");
             return;
         }
-        puts("Listening to requests...");
         printf("%s\n", "Received connection");
         spawn_child_process(server_sock_fd, incoming_sock_fd);
     }
