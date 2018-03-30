@@ -115,7 +115,8 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
             // now execute the command
             exec_command(incoming_sock_fd);
         } else {
-
+            puts("Invalid credentials. Aborting...");
+            return;
         }
 
     } else do { // this is done by the parent process
