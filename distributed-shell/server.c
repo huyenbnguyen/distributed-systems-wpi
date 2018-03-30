@@ -113,7 +113,7 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
             }
 
             // now execute the command
-            exec_command(incoming_sock_fd);
+            exec_command(server_sock_fd, incoming_sock_fd);
         } else {
             puts("Invalid credentials. Aborting...");
             return;
@@ -136,7 +136,7 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
     } while (pid == 0);
 }
 
-void exec_command(int incoming_sock_fd) {
+void exec_command(int server_sock_fd, int incoming_sock_fd) {
     char command[BUFFER_SIZE];
     bzero(command,BUFFER_SIZE);
     int bytes_read = read(incoming_sock_fd,command,BUFFER_SIZE-1); // -1 for null terminator
@@ -146,6 +146,13 @@ void exec_command(int incoming_sock_fd) {
     }
     command[bytes_read] = '\0'; // do this so we can print as string
     printf("Here is the command: %s\n",command);
+
+    if (strcmp(command, "exit") == 0) {
+        puts("Server exiting...");
+        close(incoming_sock_fd);
+        close(server_sock_fd);
+        exit(0);
+    }
 
     // now execute the command
     FILE *fp;

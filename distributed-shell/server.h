@@ -38,6 +38,6 @@ void establish_connection();
 void spawn_child_process(int server_sock_fd, int incoming_sock_fd);
 int check_credentials(int incoming_sock_fd);
 int generate_random_num();
-void exec_command(int incoming_sock_fd);
+void exec_command(int server_sock_fd, int incoming_sock_fd);
 
 #endif
