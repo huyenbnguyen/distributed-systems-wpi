@@ -76,13 +76,13 @@ void run_command_on_server(int sock_fd) {
 	
 	// display command output from server
 	char buffer[BUFFER_SIZE];
-    int bytes_read = 0;
-    while (bytes_read >= 0) {
-    	bzero(buffer,BUFFER_SIZE);
-    	bytes_read = read(sock_fd, buffer, BUFFER_SIZE-1);
-	    buffer[bytes_read] = '\0';
-	    printf("%s", buffer);
-    }
+	int bytes_read = 0;
+	while (bytes_read >= 0) {
+		bzero(buffer,BUFFER_SIZE);
+		bytes_read = read(sock_fd, buffer, BUFFER_SIZE-1);
+		buffer[bytes_read] = '\0';
+		printf("%s", buffer);
+	}
 }
 
 int signin(int sock_fd) {
