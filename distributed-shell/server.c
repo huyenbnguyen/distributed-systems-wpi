@@ -7,9 +7,9 @@
 #include "server.h"
 
 int main(int argc, char **argv) {
-    char *current_directory = get_cwd();
+    get_cwd();
 
-    parse_args(argc, argv, current_directory);
+    parse_args(argc, argv);
     if(args.port == NULL) {
         args.port = DEFAULT_PORT;
     }
@@ -28,10 +28,10 @@ int main(int argc, char **argv) {
     printf("\tport:%s\n", args.port);
     printf("\tdirectory:%s\n", args.current_directory);
 
-    establish_connection(current_directory);
+    establish_connection();
 }
 
-void establish_connection(char *current_directory) {
+void establish_connection() {
     int server_sock_fd, serv_host_port, incoming_sock_fd, getaddrinfo_ret;
     socklen_t clilen;
     struct sockaddr_in cli_addr, serv_addr;
@@ -83,11 +83,11 @@ void establish_connection(char *current_directory) {
             return;
         }
         printf("%s\n", "Received connection");
-        spawn_child_process(server_sock_fd, incoming_sock_fd, current_directory);
+        spawn_child_process(server_sock_fd, incoming_sock_fd);
     }
 }
 
-void spawn_child_process(int server_sock_fd, int incoming_sock_fd, char *current_directory) {
+void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
     pid_t pid;
     time_t t;
     int status;
@@ -110,7 +110,7 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd, char *current
             }
 
             // now execute the command
-            exec_command(server_sock_fd, incoming_sock_fd, current_directory);
+            exec_command(server_sock_fd, incoming_sock_fd);
         } else {
             puts("Invalid credentials. Aborting...");
             return;
@@ -133,7 +133,7 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd, char *current
     } while (pid == 0);
 }
 
-void exec_command(int server_sock_fd, int incoming_sock_fd, char* current_directory) {
+void exec_command(int server_sock_fd, int incoming_sock_fd) {
     char command[BUFFER_SIZE];
     bzero(command,BUFFER_SIZE);
     char *exit_message = "Server exited...";
@@ -256,7 +256,7 @@ void print_usage(char *current_directory) {
     exit(1);
 }
 
-void parse_args(int argc, char **argv, char *current_directory) {
+void parse_args(int argc, char **argv) {
     int c;
     extern int optind, opterr;
     extern char *optarg;
@@ -281,12 +281,11 @@ void parse_args(int argc, char **argv, char *current_directory) {
 }
 
 char *get_cwd() {
-    size_t size = 100;
     while (1) {
-        char *buffer = (char *) malloc (size);
-        if (getcwd (buffer, size) == buffer)
-            return buffer;
-        free (buffer);
+        current_directory = (char *) malloc (size);
+        if (getcwd (current_directory, size) == current_directory)
+            return current_directory;
+        free (current_directory);
         size *= 2;
     }
 }
