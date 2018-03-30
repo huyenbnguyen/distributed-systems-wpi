@@ -162,22 +162,30 @@ void exec_command(int server_sock_fd, int incoming_sock_fd) {
 
     fp = popen(command, "r"); // popen does fork() when it runs command
     if (fp == NULL) {
-        status = pclose(fp);
         close(incoming_sock_fd);
+        close(server_sock_fd);
         fprintf(stderr, "%s\n", "Unknown command");
-        return;
+        exit(1);
     }
 
+    // now send the output to the client
     while (fgets(buffer, BUFFER_SIZE, fp) != NULL) {
         int write_ret = write(incoming_sock_fd, buffer, BUFFER_SIZE-1);
         if (write_ret == -1) {
             status = pclose(fp);
             close(incoming_sock_fd);
+            close(server_sock_fd);
             perror("write() failed");
-            return;
+            exit(1);
         }
     }
     status = pclose(fp);
+    if (status == -1) {
+        close(incoming_sock_fd);
+        close(server_sock_fd);
+        perror("pclose() failed");
+        exit(1);
+    }
     close(incoming_sock_fd);
     exit(0);
 }
