@@ -119,13 +119,13 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
             return;
         }
 
-    } else do { // this is done by the parent process
+    } else { // this is done by the parent process
         pid_t tpid;
         do {
             tpid = wait(&status);
         } while(tpid != pid);
         puts("Child process finished...");
-    } while (pid == 0);
+    }
 }
 
 void exec_command(int server_sock_fd, int incoming_sock_fd) {
