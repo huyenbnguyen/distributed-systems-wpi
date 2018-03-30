@@ -76,7 +76,7 @@ void establish_connection() {
     printf("Socket ready to go! Accepting connections....\n\n");
     clilen = sizeof(cli_addr);
 
-    // while (1) {
+    while (1) {
         /* wait here (block) for connection */ 
         incoming_sock_fd = accept(server_sock_fd, (struct sockaddr *) &cli_addr, &clilen);
         if (incoming_sock_fd < 0) {
@@ -86,7 +86,7 @@ void establish_connection() {
 
         printf("%s\n", "Received connection");
         spawn_child_process(server_sock_fd, incoming_sock_fd);
-    // }
+    }
     close(server_sock_fd);
 }
 
@@ -120,25 +120,18 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
         }
 
     } else do { // this is done by the parent process
-        if ((pid = waitpid(pid, &status, WNOHANG)) == -1)
-            perror("wait() error");
-        else if (pid == 0) {
-            time(&t);
-            printf("child is still running at %s", ctime(&t));
-            sleep(1);
-        }
-        else {
-            if (WIFEXITED(status))
-                printf("child exited with status of %d\n", WEXITSTATUS(status));
-            else 
-                puts("child did not exit successfully");
-        }
+        pid_t tpid;
+        do {
+            tpid = wait(&status);
+        } while(tpid != pid);
+        puts("Child process finished...");
     } while (pid == 0);
 }
 
 void exec_command(int server_sock_fd, int incoming_sock_fd) {
     char command[BUFFER_SIZE];
     bzero(command,BUFFER_SIZE);
+    char *exit_message = "Server exited...";
     int bytes_read = read(incoming_sock_fd,command,BUFFER_SIZE-1); // -1 for null terminator
     if (bytes_read < 0) {
         perror("read() failed");
@@ -151,7 +144,7 @@ void exec_command(int server_sock_fd, int incoming_sock_fd) {
         puts("Server exiting...");
         close(incoming_sock_fd);
         close(server_sock_fd);
-        exit(0);
+        kill(0, SIGKILL);
     }
 
     // now execute the command

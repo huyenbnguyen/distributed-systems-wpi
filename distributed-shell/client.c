@@ -39,7 +39,7 @@ void establish_connection() {
 	// set timeout to stop reading (useful when print output from server)
 	struct timeval tv;
 	tv.tv_sec = 0;
-	tv.tv_usec = 500000;
+	tv.tv_usec = 50000;
 	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
 
 	/* socket created, so connect to the server */
@@ -75,13 +75,15 @@ void run_command_on_server(int sock_fd) {
 
 	
 	// display command output from server
-	char buffer[BUFFER_SIZE];
-	int bytes_read = 0;
-	while (bytes_read >= 0) {
-		bzero(buffer,BUFFER_SIZE);
-		bytes_read = read(sock_fd, buffer, BUFFER_SIZE-1);
-		buffer[bytes_read] = '\0';
-		printf("%s", buffer);
+	if (strcmp(args.command, "exit") != 0) {
+		char buffer[BUFFER_SIZE];
+		int bytes_read = 0;
+		while (bytes_read >= 0) {
+			bzero(buffer,BUFFER_SIZE);
+			bytes_read = read(sock_fd, buffer, BUFFER_SIZE-1);
+			buffer[bytes_read] = '\0';
+			printf("%s", buffer);
+		}
 	}
 }
 

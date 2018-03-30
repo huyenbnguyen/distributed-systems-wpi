@@ -18,6 +18,7 @@
 #include <netdb.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <signal.h>
 
 #define QUEUE_LIMIT 5
 #define BUFFER_SIZE 1024
