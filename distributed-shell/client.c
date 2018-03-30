@@ -87,7 +87,7 @@ void run_command_on_server(int sock_fd) {
 
 int signin(int sock_fd) {
 	char buffer[BUFFER_SIZE];
-    bzero(buffer,BUFFER_SIZE);
+	bzero(buffer,BUFFER_SIZE);
 	puts("Sending username...");
 	int write_ret = write(sock_fd, DEFAULT_USERNAME, strlen(DEFAULT_USERNAME));
 	if (write_ret == -1) {
