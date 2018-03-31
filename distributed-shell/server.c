@@ -75,7 +75,7 @@ void establish_connection() {
     clilen = sizeof(cli_addr);
 
     while (1) {
-        puts("Listening to requests...");
+        puts("Listening for requests...");
         /* wait here (block) for connection */ 
         incoming_sock_fd = accept(server_sock_fd, (struct sockaddr *) &cli_addr, &clilen);
         if (incoming_sock_fd < 0) {
@@ -98,8 +98,8 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
     }
     
     if (pid == 0) { // this is done by the child process
-        int valid_credentials = check_credentials(incoming_sock_fd); 
-        if (valid_credentials) {
+        int invalid_credentials = check_credentials(incoming_sock_fd); 
+        if (!invalid_credentials) {
 
             // tell the client that the credentials are good and now it can send the command 
             char *check_credentials_ok = "ok";
@@ -113,7 +113,7 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
             exec_command(server_sock_fd, incoming_sock_fd);
         } else {
             puts("Invalid credentials. Aborting...");
-            return;
+            exit(1);
         }
 
     } else do { // this is done by the parent process
@@ -194,14 +194,14 @@ int check_credentials(int incoming_sock_fd) {
     int bytes_read = read(incoming_sock_fd,username,BUFFER_SIZE-1); // -1 for null terminator
     if (bytes_read < 0) {
         perror("read() failed");
-        return 0;
+        return 1;
     }
     username[bytes_read] = '\0'; // do this so we can print as string
 
     // check username
     if (strcmp(username, DEFAULT_USERNAME) != 0) {
         fprintf(stderr, "%s\n", "Wrong username. Aborting...");
-        return 0;
+        return 1;
     }
     printf("Here is the username: %s\n",username);
 
@@ -216,14 +216,14 @@ int check_credentials(int incoming_sock_fd) {
     int write_ret = write(incoming_sock_fd, random_str, sizeof(random_str));
     if (write_ret == -1) {
         perror("write() failed");
-        return 0;
+        return 1;
     }
 
     // read encrypted password sent by client
     bytes_read = read(incoming_sock_fd, encrypted_password_client, BUFFER_SIZE-1);
     if (bytes_read < 0) {
         perror("read() failed");
-        return 0;
+        return 1;
     }
     encrypted_password_client[bytes_read] = '\0'; // do this so we can print as string
     printf("Here is the encrypted password: %s\n",encrypted_password_client);
@@ -232,11 +232,11 @@ int check_credentials(int incoming_sock_fd) {
     char *encrypted_password_server = crypt(DEFAULT_PASSWORD, random_str);
     printf("Here is the encrypted password on the server: %s\n", encrypted_password_server);
     if (strcmp(encrypted_password_server, encrypted_password_client) != 0) {
-        fprintf(stderr, "%s\n", "Wrong password. Aborting...");
-        return 0;
+        fprintf(stderr, "%s\n", "Wrong password.");
+        return 1;
     }
     puts("Correct credentials!");
-    return 1;
+    return 0;
 }
 
 int generate_random_num() {
