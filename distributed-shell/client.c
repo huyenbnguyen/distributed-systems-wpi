@@ -36,12 +36,6 @@ void establish_connection() {
 		exit(1);
 	}
 
-	// set timeout to stop reading (useful when print output from server)
-	struct timeval tv;
-	tv.tv_sec = 0;
-	tv.tv_usec = 50000;
-	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
-
 	/* socket created, so connect to the server */
 	puts("Created. Trying connection to server...");
 	if (connect(sock, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
@@ -51,7 +45,7 @@ void establish_connection() {
 	}
 
 	freeaddrinfo(servinfo);
-	if (signin(sock)) {
+	if (!signin(sock)) {
 		run_command_on_server(sock);
 	}
 	close(sock);
@@ -72,8 +66,13 @@ void run_command_on_server(int sock_fd) {
 		return;
 	}
 	puts("Command sent successfully!");
-
 	
+	// set timeout to stop reading (useful when print output from server)
+	struct timeval tv;
+	tv.tv_sec = 0;
+	tv.tv_usec = 500000;
+	setsockopt(sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+
 	// display command output from server
 	if (strcmp(args.command, "exit") != 0) {
 		char buffer[BUFFER_SIZE];
@@ -94,14 +93,15 @@ int signin(int sock_fd) {
 	int write_ret = write(sock_fd, DEFAULT_USERNAME, strlen(DEFAULT_USERNAME));
 	if (write_ret == -1) {
 		perror("write() failed");
-		return 0;
+		return 1;
 	}
 	puts("Username sent successfully!");
 
 	// read the random string sent by the server
 	int bytes_read = read(sock_fd, buffer, BUFFER_SIZE-1);
-	while (bytes_read < 0) {
-        bytes_read = read(sock_fd, buffer, BUFFER_SIZE-1);
+	if (bytes_read < 0) {
+        perror("read() failed");
+        return 1;
     }
     buffer[bytes_read] = '\0';
     printf("%s\n", buffer);
@@ -114,7 +114,7 @@ int signin(int sock_fd) {
     write_ret = write(sock_fd, encrypted_password, strlen(encrypted_password));
     if (write_ret == -1) {
     	perror("write() failed");
-    	return 0;
+    	return 1;
     }
 
     // read the response from the server
@@ -122,12 +122,12 @@ int signin(int sock_fd) {
     bytes_read = read(sock_fd, buffer, BUFFER_SIZE-1);
 	if (bytes_read < 0) {
         perror("read() failed");
-        return 0;
+        return 1;
     }
     buffer[bytes_read] = '\0';
     printf("Server said credentials were %s\n", buffer);
 
-	return strcmp(buffer, "ok") == 0;
+	return strcmp(buffer, "ok");
 }
 
 void parse_args(int argc, char **argv) {
