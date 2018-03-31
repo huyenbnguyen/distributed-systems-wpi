@@ -7,6 +7,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#define _XOPEN_SOURCE
 #include <stdio.h>
 #include <sys/socket.h>
 #include <stdlib.h>
@@ -19,6 +20,8 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <signal.h>
+#include <strings.h>
+#include <netdb.h>
 
 #define QUEUE_LIMIT 5
 #define BUFFER_SIZE 1024

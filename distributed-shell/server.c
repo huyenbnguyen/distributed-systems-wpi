@@ -38,7 +38,7 @@ void establish_connection() {
     
     // see here for the reason: https://beej.us/guide/bgnet/html/multi/getaddrinfoman.html 
     struct addrinfo hints, *servinfo;
-    memset(&hints, 0, sizeof(hints));
+    memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC; // use AF_INET6 to force IPv6
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE; // allow hostname to be NULL
