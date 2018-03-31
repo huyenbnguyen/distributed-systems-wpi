@@ -75,7 +75,7 @@ void establish_connection() {
     clilen = sizeof(cli_addr);
 
     while (1) {
-        puts("Listening for requests...");
+        puts("\n************Listening for requests...************");
         /* wait here (block) for connection */ 
         incoming_sock_fd = accept(server_sock_fd, (struct sockaddr *) &cli_addr, &clilen);
         if (incoming_sock_fd < 0) {

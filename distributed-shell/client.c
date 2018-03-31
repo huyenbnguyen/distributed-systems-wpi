@@ -100,9 +100,8 @@ int signin(int sock_fd) {
 
 	// read the random string sent by the server
 	int bytes_read = read(sock_fd, buffer, BUFFER_SIZE-1);
-	if (bytes_read < 0) {
-        perror("read() failed");
-        return 0;
+	while (bytes_read < 0) {
+        bytes_read = read(sock_fd, buffer, BUFFER_SIZE-1);
     }
     buffer[bytes_read] = '\0';
     printf("%s\n", buffer);
