@@ -23,11 +23,7 @@
 #include <strings.h>
 
 #define QUEUE_LIMIT 5
-#define BUFFER_SIZE 1024
 
-char *default_port = "9898";
-char *default_username = "huyen";
-char *default_password = "abc";
 size_t size = 100;
 char *current_directory;
 

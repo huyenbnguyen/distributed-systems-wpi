@@ -4,6 +4,7 @@
  *
  */
 
+#include "shared.h"
 #include "server.h"
 
 int main(int argc, char **argv) {
@@ -62,7 +63,6 @@ void establish_connection() {
         return;
     }
 
-    printf("%s\n", args.port);
     freeaddrinfo(servinfo);
 
     /* mark socket as passive, with backlog num */
