@@ -32,9 +32,9 @@ int main(int argc, char **argv) {
 }
 
 void establish_connection() {
-    int server_sock_fd, serv_host_port, incoming_sock_fd, getaddrinfo_ret;
+    int server_sock_fd, incoming_sock_fd, getaddrinfo_ret;
     socklen_t clilen;
-    struct sockaddr_in cli_addr, serv_addr;
+    struct sockaddr_in cli_addr;
     
     // see here for the reason: https://beej.us/guide/bgnet/html/multi/getaddrinfoman.html 
     struct addrinfo hints, *servinfo;
@@ -136,7 +136,6 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
 void exec_command(int server_sock_fd, int incoming_sock_fd) {
     char command[BUFFER_SIZE];
     bzero(command,BUFFER_SIZE);
-    char *exit_message = "Server exited...";
     int bytes_read = read(incoming_sock_fd,command,BUFFER_SIZE-1); // -1 for null terminator
     if (bytes_read < 0) {
         perror("read() failed");
