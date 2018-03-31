@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
 
     parse_args(argc, argv);
     if(args.port == NULL) {
-        args.port = DEFAULT_PORT;
+        args.port = default_port;
     }
     if (args.current_directory == NULL) {
         args.current_directory = current_directory;
@@ -51,23 +51,23 @@ void establish_connection() {
     /* create socket from which to read */
     if ((server_sock_fd = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol)) < 0) {
         freeaddrinfo(servinfo);
-        perror("creating socket");
+        perror("socket() failed");
         return;
     }
 
     /* bind our local address so client can connect to us */
     if (bind(server_sock_fd, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
         freeaddrinfo(servinfo);
-        perror("can't bind to local address");
+        perror("bind() failed");
         return;
     }
 
+    printf("%s\n", args.port);
     freeaddrinfo(servinfo);
 
     /* mark socket as passive, with backlog num */
     if (listen(server_sock_fd, QUEUE_LIMIT) == -1) {
-        
-        perror("listen");
+        perror("listen() failed");
         return;
     }
 
@@ -199,7 +199,7 @@ int check_credentials(int incoming_sock_fd) {
     username[bytes_read] = '\0'; // do this so we can print as string
 
     // check username
-    if (strcmp(username, DEFAULT_USERNAME) != 0) {
+    if (strcmp(username, default_username) != 0) {
         fprintf(stderr, "%s\n", "Wrong username. Aborting...");
         return 1;
     }
@@ -229,7 +229,7 @@ int check_credentials(int incoming_sock_fd) {
     printf("Here is the encrypted password: %s\n",encrypted_password_client);
 
     // check encrypted password
-    char *encrypted_password_server = crypt(DEFAULT_PASSWORD, random_str);
+    char *encrypted_password_server = crypt(default_password, random_str);
     printf("Here is the encrypted password on the server: %s\n", encrypted_password_server);
     if (strcmp(encrypted_password_server, encrypted_password_client) != 0) {
         fprintf(stderr, "%s\n", "Wrong password.");

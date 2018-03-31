@@ -9,7 +9,7 @@
 int main(int argc, char **argv) {
 	parse_args(argc, argv);
 	if (args.port == NULL) {
-		args.port = DEFAULT_PORT;
+		args.port = default_port;
 	}
 	establish_connection();
 }
@@ -90,7 +90,7 @@ int signin(int sock_fd) {
 	char buffer[BUFFER_SIZE];
 	bzero(buffer,BUFFER_SIZE);
 	puts("Sending username...");
-	int write_ret = write(sock_fd, DEFAULT_USERNAME, strlen(DEFAULT_USERNAME));
+	int write_ret = write(sock_fd, default_username, strlen(default_username));
 	if (write_ret == -1) {
 		perror("write() failed");
 		return 1;
@@ -107,7 +107,7 @@ int signin(int sock_fd) {
     printf("%s\n", buffer);
 
     // encrypt password
-    char *encrypted_password = crypt(DEFAULT_PASSWORD, buffer);
+    char *encrypted_password = crypt(default_password, buffer);
     printf("Client: Encrypted password %s\n", encrypted_password);
 
     // send encrypted password 

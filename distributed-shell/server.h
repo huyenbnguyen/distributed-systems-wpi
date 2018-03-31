@@ -25,13 +25,15 @@
 #define QUEUE_LIMIT 5
 #define BUFFER_SIZE 1024
 
-const char *DEFAULT_PORT = "9898";
-const char *DEFAULT_USERNAME = "huyen";
-const char *DEFAULT_PASSWORD = "abc";
+char *default_port = "9898";
+char *default_username = "huyen";
+char *default_password = "abc";
+size_t size = 100;
+char *current_directory;
 
 struct arguments {
    char *current_directory;
-   const char *port;
+   char *port;
 } args;
 
 void print_usage(char *current_directory);
@@ -42,9 +44,5 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd);
 int check_credentials(int incoming_sock_fd);
 int generate_random_num();
 void exec_command(int server_sock_fd, int incoming_sock_fd);
-
-// global variables
-size_t size = 100;
-char *current_directory;
 
 #endif
