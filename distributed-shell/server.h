@@ -7,20 +7,16 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#define _XOPEN_SOURCE
 #include <stdio.h>
-#include <sys/socket.h>
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <ctype.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <netdb.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <signal.h>
 #include <strings.h>
+#include <unistd.h>
 
 #define QUEUE_LIMIT 5
 
