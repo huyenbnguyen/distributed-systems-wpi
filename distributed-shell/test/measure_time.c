@@ -38,9 +38,9 @@ int main(int argc, char **argv) {
         // write to file
         FILE *fp;
         fp = fopen(argv[6], "a");
-        const int n = snprintf(NULL, 0, "%lu", duration);
-        char buf[n+1];
-        snprintf(buf, n+1, "%lu", duration);
+        const int bytes = snprintf(NULL, 0, "%lu", duration);
+        char buf[bytes+1];
+        snprintf(buf, bytes+1, "%lu", duration);
         fputs(buf, fp);
         fputs("\n", fp);
         fclose(fp);
