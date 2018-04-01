@@ -39,7 +39,6 @@ int main(int argc, char **argv) {
         fp = fopen(argv[6], "a");
         const int n = snprintf(NULL, 0, "%lu", duration);
         char buf[n+1];
-        int c = snprintf(buf, n+1, "%lu", duration);
         fputs(buf, fp);
         fputs("\n", fp);
         fclose(fp);
