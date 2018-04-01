@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <string.h>
 
 int main(int argc, char **argv) {
     // printf("%s\n", argv[1]);
@@ -39,11 +40,12 @@ int main(int argc, char **argv) {
         fp = fopen(argv[6], "a");
         const int n = snprintf(NULL, 0, "%lu", duration);
         char buf[n+1];
+        snprintf(buf, n+1, "%lu", duration);
         fputs(buf, fp);
         fputs("\n", fp);
         fclose(fp);
-        printf("%ld\n", duration);
-        printf("%s\n", "");
+        printf("%ld\n\n", duration);
+
         return child_status;
      }
 }
