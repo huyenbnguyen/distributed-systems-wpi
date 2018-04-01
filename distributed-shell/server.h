@@ -35,10 +35,11 @@ struct arguments {
 void print_usage(char *current_directory);
 void parse_args(int argc, char **argv);
 void get_cwd();
-void establish_connection();
+void listen_request(int server_sock_fd);
 void spawn_child_process(int server_sock_fd, int incoming_sock_fd);
 int check_credentials(int incoming_sock_fd);
 int generate_random_num();
 void exec_command(int server_sock_fd, int incoming_sock_fd);
+int create_socket();
 
 #endif

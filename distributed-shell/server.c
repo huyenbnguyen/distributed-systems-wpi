@@ -25,52 +25,28 @@ int main(int argc, char **argv) {
         }
     }
 
+    int server_sock_fd; 
+    while ((server_sock_fd = create_socket()) < 0) {
+        fprintf(stderr, "%s\n", "Trying again");
+        int new_port = atoi(args.port) + 1;
+        // convert to string
+        char random_str[17]; // port number can only be within 0 to 2^16-1
+        snprintf(random_str, 17, "%d", new_port);
+        args.port = random_str;
+    }
+
     printf("%s\n", "./server activating");
-    printf("\tport:%s\n", args.port);
+    printf("\tPORT:%s\n", args.port);
     printf("\tdirectory:%s\n", args.current_directory);
 
-    establish_connection();
+    listen_request(server_sock_fd);
 }
 
-void establish_connection() {
-    int server_sock_fd, incoming_sock_fd, getaddrinfo_ret;
+void listen_request(int server_sock_fd) {
+    int incoming_sock_fd;
     socklen_t clilen;
     struct sockaddr_in cli_addr;
     
-    // see here for the reason: https://beej.us/guide/bgnet/html/multi/getaddrinfoman.html 
-    struct addrinfo hints, *servinfo;
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC; // use AF_INET6 to force IPv6
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE; // allow hostname to be NULL
-    if ((getaddrinfo_ret = getaddrinfo(NULL, args.port, &hints, &servinfo)) != 0) {
-        freeaddrinfo(servinfo);
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(getaddrinfo_ret));
-        return;
-    }  
-
-    /* create socket from which to read */
-    if ((server_sock_fd = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol)) < 0) {
-        freeaddrinfo(servinfo);
-        perror("socket() failed");
-        return;
-    }
-
-    /* bind our local address so client can connect to us */
-    if (bind(server_sock_fd, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
-        freeaddrinfo(servinfo);
-        perror("bind() failed");
-        return;
-    }
-
-    freeaddrinfo(servinfo);
-
-    /* mark socket as passive, with backlog num */
-    if (listen(server_sock_fd, QUEUE_LIMIT) == -1) {
-        perror("listen() failed");
-        return;
-    }
-
     printf("Socket ready to go! Accepting connections....\n\n");
     clilen = sizeof(cli_addr);
 
@@ -85,6 +61,46 @@ void establish_connection() {
         printf("%s\n", "Received connection");
         spawn_child_process(server_sock_fd, incoming_sock_fd);
     }
+}
+
+int create_socket() {
+    int server_sock_fd, incoming_sock_fd, getaddrinfo_ret;
+    struct addrinfo hints, *servinfo;
+
+    // getaddrinfo() replaces gethostbyname()
+    // see here for the reason: https://beej.us/guide/bgnet/html/multi/getaddrinfoman.html  
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC; // use AF_INET6 to force IPv6
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE; // allow hostname to be NULL
+    if ((getaddrinfo_ret = getaddrinfo(NULL, args.port, &hints, &servinfo)) != 0) {
+        freeaddrinfo(servinfo);
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(getaddrinfo_ret));
+        return -1;
+    }  
+
+    /* create socket from which to read */
+    if ((server_sock_fd = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol)) < 0) {
+        freeaddrinfo(servinfo);
+        perror("socket() failed");
+        return -1;
+    }
+
+    /* bind our local address so client can connect to us */
+    if (bind(server_sock_fd, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
+        freeaddrinfo(servinfo);
+        perror("bind() failed");
+        return -1;
+    }
+
+    freeaddrinfo(servinfo);
+
+    /* mark socket as passive, with backlog num */
+    if (listen(server_sock_fd, QUEUE_LIMIT) == -1) {
+        perror("listen() failed");
+        return -1;
+    }
+    return server_sock_fd;
 }
 
 void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
