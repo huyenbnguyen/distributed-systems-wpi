@@ -15,7 +15,7 @@ for i in {1..2}
 do
 	echo ""
 	echo $i
-	./measure_time $program_path/client -s 127.0.0.1 -c ""
+	./measure_time $program_path/client -s 127.0.0.1 -c "" empty_command.txt
 done
 echo "Shutting down server..."
-./measure_time $program_path/client -s 127.0.0.1 -c "exit"
+./measure_time $program_path/client -s 127.0.0.1 -c "exit" 
