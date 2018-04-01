@@ -4,9 +4,7 @@
 #define BUFFER_SIZE 1024
 
 #define _XOPEN_SOURCE
-// #define _POSIX_C_SOURCE 200112L
 #define _GNU_SOURCE
-#include <crypt.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
