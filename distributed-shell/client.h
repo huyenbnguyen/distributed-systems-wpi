@@ -19,7 +19,7 @@ struct arguments {
 void print_usage();
 void parse_args(int argc, char **argv);
 void establish_connection();
-int signin(int sock_fd);
+int signin_fail(int sock_fd);
 void run_command_on_server(int sock_fd); 
 
 #endif

@@ -46,7 +46,7 @@ void establish_connection() {
 	}
 
 	freeaddrinfo(servinfo);
-	if (!signin(sock)) {
+	if (!signin_fail(sock)) {
 		run_command_on_server(sock);
 	}
 	close(sock);
@@ -88,7 +88,7 @@ void run_command_on_server(int sock_fd) {
 	puts("Finished printing command output from server.\n");
 }
 
-int signin(int sock_fd) {
+int signin_fail(int sock_fd) {
 	char buffer[BUFFER_SIZE];
 	bzero(buffer,BUFFER_SIZE);
 	puts("Sending username...");
