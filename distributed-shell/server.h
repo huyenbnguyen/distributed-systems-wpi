@@ -19,6 +19,7 @@
 #include <unistd.h>
 
 #define QUEUE_LIMIT 5
+#define MAX_SOCKET_NUM 65535
 
 size_t size = 100;
 char *current_directory;

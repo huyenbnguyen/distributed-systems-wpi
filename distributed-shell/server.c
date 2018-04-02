@@ -26,7 +26,8 @@ int main(int argc, char **argv) {
     }
 
     int server_sock_fd; 
-    while ((server_sock_fd = create_socket()) < 0) {
+    int new_port = 1024;
+    while ((server_sock_fd = create_socket()) < 0 && new_port <= MAX_SOCKET_NUM) {
         fprintf(stderr, "%s\n", "Trying again");
         int new_port = atoi(args.port) + 1;
         // convert to string
@@ -138,7 +139,7 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
         else if (pid == 0) {
             time(&t);
             printf("child with pid %d is still running at %s", pid, ctime(&t));
-            sleep(1);
+            sleep(10);
         }
         else {
             if (WIFEXITED(status))

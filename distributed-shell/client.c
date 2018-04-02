@@ -85,6 +85,7 @@ void run_command_on_server(int sock_fd) {
 			printf("%s", buffer);
 		}
 	}
+	puts("Finished printing command output from server.\n");
 }
 
 int signin(int sock_fd) {

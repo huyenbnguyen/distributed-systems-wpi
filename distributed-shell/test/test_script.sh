@@ -6,9 +6,8 @@ gcc measure_time.c -o measure_time
 current_path=`pwd`
 program_path=$current_path/../
 
-# echo "*********************"
-# echo "Starting server"
-# $program_path/server &
+rm empty_command.txt
+
 echo "*********************"
 echo "Running empty command 10 times"
 for i in {1..2}
