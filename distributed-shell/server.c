@@ -138,8 +138,8 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
             perror("wait() error");
         else if (pid == 0) {
             time(&t);
-            printf("child with pid %d is still running at %s", pid, ctime(&t));
-            sleep(10);
+            // printf("child with pid %d is still running at %s", pid, ctime(&t));
+            // sleep(1);
         }
         else {
             if (WIFEXITED(status))
