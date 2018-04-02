@@ -28,7 +28,8 @@ int main(int argc, char **argv) {
     int server_sock_fd; 
     int new_port = 1024;
     while ((server_sock_fd = create_socket()) < 0 && new_port <= MAX_SOCKET_NUM) {
-        fprintf(stderr, "%s\n", "Trying again");
+        printf("Port %s is being used.\n", args.port);
+        fprintf(stderr, "%s\n", "Trying a different port number...");
         int new_port = atoi(args.port) + 1;
         // convert to string
         char random_str[17]; // port number can only be within 0 to 2^16-1
@@ -138,6 +139,7 @@ void spawn_child_process(int server_sock_fd, int incoming_sock_fd) {
             perror("wait() error");
         else if (pid == 0) {
             time(&t);
+            // uncomment these lines for debugging purposes
             // printf("child with pid %d is still running at %s", pid, ctime(&t));
             // sleep(1);
         }
