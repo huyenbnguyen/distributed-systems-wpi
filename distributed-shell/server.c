@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
         snprintf(random_str, 17, "%d", new_port);
         args.port = random_str;
     }
-
+    printf("SOCKET CREATED SUCCESSFULLY! PORT NUMBER IS %s\n", args.port);
     printf("%s\n", "./server activating");
     printf("\tPORT:%s\n", args.port);
     printf("\tdirectory:%s\n", args.current_directory);
