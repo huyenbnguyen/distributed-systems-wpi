@@ -25,12 +25,15 @@ Run ```./client -s 127.0.0.1 -c "ls -l"``` run the command ```ls -l``` on the lo
 Run ```./client -h``` for help menu   
 
 #### Running the tests
-*Note: Since the test script includes uploading files to the Amazon EC2 instance, you want to comment out lines 21 to 33 in ```test/test_script.sh```.*
+
 
 ```
 cd distributed-shell/test
 ./test_script.sh
 ```
+If you want to run the test using a local server, you should change the server IP address on lines 18 and 36. You can also change the command you want to run.
+
+*Note: Since the test script includes uploading files to the Amazon EC2 instance, you want to comment out lines 21 to 33 in ```test/test_script.sh```.*
 
 #### Shutting Down Server
 Run ```./client -s 127.0.0.1 -c "exit"```
