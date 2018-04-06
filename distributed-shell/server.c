@@ -267,7 +267,7 @@ int generate_random_num() {
 void print_usage(char *current_directory) {
     fprintf (stderr, "*** Distributed shell server *** \n");
     fprintf (stderr, "usage: ./server [flags], where flags are\n");
-    fprintf (stderr, "\t-p #\tport to serve on (default in 9898)\n");
+    fprintf (stderr, "\t-p #\tport to serve on (default in 1024)\n");
     fprintf (stderr, "\t-d dir\tdirectory to serve out of (default is %s)\n", current_directory);
     fprintf (stderr, "\t-h\tdisplay this help message\n"); 
     free(current_directory);

@@ -165,7 +165,7 @@ void print_usage() {
     fprintf (stderr, "usage: ./client  [flags] {-c command}, where flags are:\n");
     fprintf (stderr, "\t{-c command}\tcommand to execute remotely\n");
     fprintf (stderr, "\t{-s host}\thost server is on");
-    fprintf (stderr, "\t[-p #]\tport server is on (default is 9898)");
+    fprintf (stderr, "\t[-p #]\tport server is on (default is 1024)");
     fprintf (stderr, "\t[-h]\tdisplay this help message\n"); 
     exit(1);
 }
