@@ -1,9 +1,3 @@
-mention:
-- max socket num
-- socket change mechanism
-- how to exit server
-
-
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
@@ -42,5 +36,5 @@ cd distributed-shell/test
 Run ```./client -s 127.0.0.1 -c "exit"```
 
 #### How Server Changes Port 
-* The server tries to bind socket numbers from 1024 to 65536 using a for loop
+* The default port number is 1024, however the server can change it dynamically without asking the client by running a for loop from 1024 to 65536.
 * If the port number changes, the client *must* specify a port number (e.g. ```./client -s 127.0.0.1 -c "ls -l" -p 1025```
